@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -10,26 +10,15 @@ using GameFramework;
 namespace UnityGameFramework.Runtime
 {
     /// <summary>
-    /// object 变量类。
+    /// System.Object 变量类。
     /// </summary>
     public sealed class VarObject : Variable<object>
     {
         /// <summary>
-        /// 初始化 object 变量类的新实例。
+        /// 初始化 System.Object 变量类的新实例。
         /// </summary>
         public VarObject()
         {
-
-        }
-
-        /// <summary>
-        /// 初始化 object 变量类的新实例。
-        /// </summary>
-        /// <param name="value">值。</param>
-        public VarObject(object value)
-            : base(value)
-        {
-
         }
     }
 }

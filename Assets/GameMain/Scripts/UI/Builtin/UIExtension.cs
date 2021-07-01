@@ -1,5 +1,4 @@
-﻿using GameFramework;
-using GameFramework.DataTable;
+﻿using GameFramework.DataTable;
 using GameFramework.UI;
 using System.Collections;
 using UnityEngine;
@@ -10,11 +9,6 @@ namespace FlappyBird
 {
     public static class UIExtension
     {
-        /// <summary>
-        /// 界面淡入淡出
-        /// </summary>
-        /// <param name="alpha">目标透明度</param>
-        /// <param name="duration">持续时间</param>
         public static IEnumerator FadeToAlpha(this CanvasGroup canvasGroup, float alpha, float duration)
         {
             float time = 0f;
@@ -29,11 +23,6 @@ namespace FlappyBird
             canvasGroup.alpha = alpha;
         }
 
-        /// <summary>
-        /// 滑动条值平滑变化
-        /// </summary>
-        /// <param name="value">目标值</param>
-        /// <param name="duration">持续时间</param>
         public static IEnumerator SmoothValue(this Slider slider, float value, float duration)
         {
             float time = 0f;
@@ -48,20 +37,11 @@ namespace FlappyBird
             slider.value = value;
         }
 
-        /// <summary>
-        /// 界面组中是否存在界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
         public static bool HasUIForm(this UIComponent uiComponent, UIFormId uiFormId, string uiGroupName = null)
         {
             return uiComponent.HasUIForm((int)uiFormId, uiGroupName);
         }
 
-        /// <summary>
-        /// 界面组中是否存在界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
-        /// <param name="uiGroupName">界面组名称</param>
         public static bool HasUIForm(this UIComponent uiComponent, int uiFormId, string uiGroupName = null)
         {
             IDataTable<DRUIForm> dtUIForm = GameEntry.DataTable.GetDataTable<DRUIForm>();
@@ -86,21 +66,11 @@ namespace FlappyBird
             return uiGroup.HasUIForm(assetName);
         }
 
-        /// <summary>
-        /// 获取界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
-        /// <param name="uiGroupName">界面组名称</param>
         public static UGuiForm GetUIForm(this UIComponent uiComponent, UIFormId uiFormId, string uiGroupName = null)
         {
             return uiComponent.GetUIForm((int)uiFormId, uiGroupName);
         }
 
-        /// <summary>
-        /// 获取界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
-        /// <param name="uiGroupName">界面组名称</param>
         public static UGuiForm GetUIForm(this UIComponent uiComponent, int uiFormId, string uiGroupName = null)
         {
             IDataTable<DRUIForm> dtUIForm = GameEntry.DataTable.GetDataTable<DRUIForm>();
@@ -138,30 +108,16 @@ namespace FlappyBird
             return (UGuiForm)uiForm.Logic;
         }
 
-        /// <summary>
-        /// 关闭界面
-        /// </summary>
-        /// <param name="uiForm">要关闭的界面</param>
         public static void CloseUIForm(this UIComponent uiComponent, UGuiForm uiForm)
         {
             uiComponent.CloseUIForm(uiForm.UIForm);
         }
 
-        /// <summary>
-        /// 关闭界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
-        /// <param name="userData">用户自定义数据</param>
         public static int? OpenUIForm(this UIComponent uiComponent, UIFormId uiFormId, object userData = null)
         {
             return uiComponent.OpenUIForm((int)uiFormId, userData);
         }
 
-        /// <summary>
-        /// 打开界面
-        /// </summary>
-        /// <param name="uiFormId">界面编号</param>
-        /// <param name="userData">用户自定义数据</param>
         public static int? OpenUIForm(this UIComponent uiComponent, int uiFormId, object userData = null)
         {
             IDataTable<DRUIForm> dtUIForm = GameEntry.DataTable.GetDataTable<DRUIForm>();
@@ -173,7 +129,6 @@ namespace FlappyBird
             }
 
             string assetName = AssetUtility.GetUIFormAsset(drUIForm.AssetName);
-
             if (!drUIForm.AllowMultiInstance)
             {
                 if (uiComponent.IsLoadingUIForm(assetName))
@@ -187,9 +142,28 @@ namespace FlappyBird
                 }
             }
 
-            return uiComponent.OpenUIForm(assetName, drUIForm.UIGroupName, drUIForm.PauseCoveredUIForm, userData);
+            return uiComponent.OpenUIForm(assetName, drUIForm.UIGroupName, Constant.AssetPriority.UIFormAsset, drUIForm.PauseCoveredUIForm, userData);
         }
 
-        
+        public static void OpenDialog(this UIComponent uiComponent, DialogParams dialogParams)
+        {
+            if (((ProcedureBase)GameEntry.Procedure.CurrentProcedure).UseNativeDialog)
+            {
+                OpenNativeDialog(dialogParams);
+            }
+            else
+            {
+                uiComponent.OpenUIForm(UIFormId.DialogForm, dialogParams);
+            }
+        }
+
+        private static void OpenNativeDialog(DialogParams dialogParams)
+        {
+            // TODO：这里应该弹出原生对话框，先简化实现为直接按确认按钮
+            if (dialogParams.OnClickConfirm != null)
+            {
+                dialogParams.OnClickConfirm(dialogParams.UserData);
+            }
+        }
     }
 }

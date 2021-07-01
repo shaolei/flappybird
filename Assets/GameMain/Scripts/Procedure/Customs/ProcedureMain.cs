@@ -1,9 +1,8 @@
 
 using GameFramework.Event;
-using GameFramework.Fsm;
-using GameFramework.Procedure;
 using UnityEngine;
 using UnityGameFramework.Runtime;
+using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 
 namespace FlappyBird
 {
@@ -31,8 +30,16 @@ namespace FlappyBird
         /// 是否返回主菜单
         /// </summary>
         private bool m_IsReturnMenu = false;
+        
+        public override bool UseNativeDialog
+        {
+            get
+            {
+                return false;
+            }
+        }
 
-        protected override void OnEnter(IFsm<IProcedureManager> procedureOwner)
+        protected override void OnEnter(ProcedureOwner procedureOwner)
         {
             base.OnEnter(procedureOwner);
  
@@ -46,7 +53,7 @@ namespace FlappyBird
             GameEntry.Event.Subscribe(ReturnMenuEventArgs.EventId, OnReturnMenu);
         }
         
-        protected override void OnUpdate(IFsm<IProcedureManager> procedureOwner, float elapseSeconds, float realElapseSeconds)
+        protected override void OnUpdate(ProcedureOwner procedureOwner, float elapseSeconds, float realElapseSeconds)
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
  
@@ -66,12 +73,12 @@ namespace FlappyBird
             if (m_IsReturnMenu)
             {
                 m_IsReturnMenu = false;
-                procedureOwner.SetData<VarInt>(Constant.ProcedureData.NextSceneId, GameEntry.Config.GetInt("Scene.Menu"));
+                procedureOwner.SetData<VarInt32>("NextSceneId", GameEntry.Config.GetInt("Scene.Menu"));
                 ChangeState<ProcedureChangeScene>(procedureOwner);
             }
         }
         
-        protected override void OnLeave(IFsm<IProcedureManager> procedureOwner, bool isShutdown)
+        protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
  

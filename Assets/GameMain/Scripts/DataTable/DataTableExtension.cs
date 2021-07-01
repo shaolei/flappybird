@@ -1,23 +1,17 @@
-﻿using GameFramework;
+﻿using GameFramework.DataTable;
 using System;
+using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace FlappyBird
 {
     public static class DataTableExtension
     {
-        /// <summary>
-        /// 数据行前缀名（根据项目命名空间决定）
-        /// </summary>
         private const string DataRowClassPrefixName = "FlappyBird.DR";
-        private static readonly string[] ColumnSplit = new string[] { "\t" };
+        internal static readonly char[] DataSplitSeparators = new char[] { '\t' };
+        internal static readonly char[] DataTrimSeparators = new char[] { '\"' };
 
-        /// <summary>
-        /// 加载数据表
-        /// </summary>
-        /// <param name="dataTableName">数据表名称</param>
-        /// <param name="userData">用户自定义数据</param>
-        public static void LoadDataTable(this DataTableComponent dataTableComponent, string dataTableName, object userData = null)
+        public static void LoadDataTable(this DataTableComponent dataTableComponent, string dataTableName, string dataTableAssetName, object userData)
         {
             if (string.IsNullOrEmpty(dataTableName))
             {
@@ -25,16 +19,14 @@ namespace FlappyBird
                 return;
             }
 
-            string[] splitNames = dataTableName.Split('_');
-            if (splitNames.Length > 2)
+            string[] splitedNames = dataTableName.Split('_');
+            if (splitedNames.Length > 2)
             {
                 Log.Warning("Data table name is invalid.");
                 return;
             }
 
-            //获取数据表行类名
-            string dataRowClassName = DataRowClassPrefixName + splitNames[0];
-
+            string dataRowClassName = DataRowClassPrefixName + splitedNames[0];
             Type dataRowType = Type.GetType(dataRowClassName);
             if (dataRowType == null)
             {
@@ -42,17 +34,51 @@ namespace FlappyBird
                 return;
             }
 
-            string dataTableNameInType = splitNames.Length > 1 ? splitNames[1] : null;
-            dataTableComponent.LoadDataTable(dataRowType, dataTableName, dataTableNameInType, AssetUtility.GetDataTableAsset(dataTableName), userData);
+            string name = splitedNames.Length > 1 ? splitedNames[1] : null;
+            DataTableBase dataTable = dataTableComponent.CreateDataTable(dataRowType, name);
+            dataTable.ReadData(dataTableAssetName, Constant.AssetPriority.DataTableAsset, userData);
         }
 
-        /// <summary>
-        /// 切割数据表行文本
-        /// </summary>
-        /// <param name="dataRowText">数据表行文本</param>
-        public static string[] SplitDataRow(string dataRowText)
+        public static Color32 ParseColor32(string value)
         {
-            return dataRowText.Split(ColumnSplit, StringSplitOptions.None);
+            string[] splitedValue = value.Split(',');
+            return new Color32(byte.Parse(splitedValue[0]), byte.Parse(splitedValue[1]), byte.Parse(splitedValue[2]), byte.Parse(splitedValue[3]));
+        }
+
+        public static Color ParseColor(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Color(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
+        }
+
+        public static Quaternion ParseQuaternion(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Quaternion(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
+        }
+
+        public static Rect ParseRect(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Rect(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
+        }
+
+        public static Vector2 ParseVector2(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Vector2(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]));
+        }
+
+        public static Vector3 ParseVector3(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Vector3(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]));
+        }
+
+        public static Vector4 ParseVector4(string value)
+        {
+            string[] splitedValue = value.Split(',');
+            return new Vector4(float.Parse(splitedValue[0]), float.Parse(splitedValue[1]), float.Parse(splitedValue[2]), float.Parse(splitedValue[3]));
         }
     }
 }

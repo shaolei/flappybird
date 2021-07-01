@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -20,17 +20,6 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public VarTransform()
         {
-
-        }
-
-        /// <summary>
-        /// 初始化 UnityEngine.Transform 变量类的新实例。
-        /// </summary>
-        /// <param name="value">值。</param>
-        public VarTransform(Transform value)
-            : base(value)
-        {
-
         }
 
         /// <summary>
@@ -39,7 +28,9 @@ namespace UnityGameFramework.Runtime
         /// <param name="value">值。</param>
         public static implicit operator VarTransform(Transform value)
         {
-            return new VarTransform(value);
+            VarTransform varValue = ReferencePool.Acquire<VarTransform>();
+            varValue.Value = value;
+            return varValue;
         }
 
         /// <summary>

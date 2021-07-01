@@ -1,6 +1,6 @@
-﻿using GameFramework;
-using System;
+﻿using System;
 using System.Xml;
+using GameFramework.Localization;
 using UnityGameFramework.Runtime;
 
 namespace FlappyBird
@@ -13,17 +13,17 @@ namespace FlappyBird
         /// <summary>
         /// 解析字典。
         /// </summary>
-        /// <param name="text">要解析的字典文本。</param>
+        /// <param name="dictionaryString">要解析的字典字符串。</param>
         /// <param name="userData">用户自定义数据。</param>
         /// <returns>是否解析字典成功。</returns>
-        public override bool ParseDictionary(string text, object userData)
+        public override bool ParseData(ILocalizationManager localizationManager, string dictionaryString,
+            object userData)
         {
             try
             {
                 string currentLanguage = GameEntry.Localization.Language.ToString();
-
                 XmlDocument xmlDocument = new XmlDocument();
-                xmlDocument.LoadXml(text);
+                xmlDocument.LoadXml(dictionaryString);
                 XmlNode xmlRoot = xmlDocument.SelectSingleNode("Dictionaries");
                 XmlNodeList xmlNodeDictionaryList = xmlRoot.ChildNodes;
                 for (int i = 0; i < xmlNodeDictionaryList.Count; i++)
@@ -40,7 +40,6 @@ namespace FlappyBird
                         continue;
                     }
 
-                    //获取 key value 对
                     XmlNodeList xmlNodeStringList = xmlNodeDictionary.ChildNodes;
                     for (int j = 0; j < xmlNodeStringList.Count; j++)
                     {
@@ -52,9 +51,10 @@ namespace FlappyBird
 
                         string key = xmlNodeString.Attributes.GetNamedItem("Key").Value;
                         string value = xmlNodeString.Attributes.GetNamedItem("Value").Value;
-                        if (!AddRawString(key, value))
+                        if (!localizationManager.AddRawString(key, value))
                         {
-                            Log.Warning("Can not add raw string with key '{0}' which may be invalid or duplicate.", key);
+                            Log.Warning("Can not add raw string with key '{0}' which may be invalid or duplicate.",
+                                key);
                             return false;
                         }
                     }
@@ -64,7 +64,7 @@ namespace FlappyBird
             }
             catch (Exception exception)
             {
-                Log.Warning("Can not parse dictionary '{0}' with exception '{1}'.", text, string.Format("{0}\n{1}", exception.Message, exception.StackTrace));
+                Log.Warning("Can not parse dictionary data with exception '{0}'.", exception.ToString());
                 return false;
             }
         }

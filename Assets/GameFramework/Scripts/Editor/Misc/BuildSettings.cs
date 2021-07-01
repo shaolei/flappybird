@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -25,7 +25,7 @@ namespace UnityGameFramework.Editor
 
         static BuildSettings()
         {
-            s_ConfigurationPath = Type.GetConfigurationPath<BuildSettingsConfigPathAttribute>() ?? Utility.Path.GetCombinePath(Application.dataPath, "GameFramework/Configs/BuildSettings.xml");
+            s_ConfigurationPath = Type.GetConfigurationPath<BuildSettingsConfigPathAttribute>() ?? Utility.Path.GetRegularPath(Path.Combine(Application.dataPath, "GameFramework/Configs/BuildSettings.xml"));
             s_DefaultSceneNames.Clear();
             s_SearchScenePaths.Clear();
 
@@ -74,7 +74,6 @@ namespace UnityGameFramework.Editor
             }
             catch
             {
-
             }
         }
 
@@ -82,7 +81,7 @@ namespace UnityGameFramework.Editor
         /// 将构建场景设置为默认。
         /// </summary>
         [MenuItem("Game Framework/Scenes in Build Settings/Default Scenes", false, 20)]
-        private static void DefaultScenes()
+        public static void DefaultScenes()
         {
             HashSet<string> sceneNames = new HashSet<string>();
             foreach (string sceneName in s_DefaultSceneNames)
@@ -105,7 +104,7 @@ namespace UnityGameFramework.Editor
         /// 将构建场景设置为所有。
         /// </summary>
         [MenuItem("Game Framework/Scenes in Build Settings/All Scenes", false, 21)]
-        private static void AllScenes()
+        public static void AllScenes()
         {
             HashSet<string> sceneNames = new HashSet<string>();
             foreach (string sceneName in s_DefaultSceneNames)

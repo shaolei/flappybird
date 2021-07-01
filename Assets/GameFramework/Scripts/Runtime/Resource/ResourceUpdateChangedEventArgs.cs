@@ -1,10 +1,11 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
 using GameFramework.Event;
 
 namespace UnityGameFramework.Runtime
@@ -18,6 +19,18 @@ namespace UnityGameFramework.Runtime
         /// 资源更新改变事件编号。
         /// </summary>
         public static readonly int EventId = typeof(ResourceUpdateChangedEventArgs).GetHashCode();
+
+        /// <summary>
+        /// 初始化资源更新改变事件的新实例。
+        /// </summary>
+        public ResourceUpdateChangedEventArgs()
+        {
+            Name = null;
+            DownloadPath = null;
+            DownloadUri = null;
+            CurrentLength = 0;
+            CompressedLength = 0;
+        }
 
         /// <summary>
         /// 获取资源更新改变事件编号。
@@ -67,12 +80,28 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
-        /// 获取压缩包大小。
+        /// 获取压缩后大小。
         /// </summary>
-        public int ZipLength
+        public int CompressedLength
         {
             get;
             private set;
+        }
+
+        /// <summary>
+        /// 创建资源更新改变事件。
+        /// </summary>
+        /// <param name="e">内部事件。</param>
+        /// <returns>创建的资源更新改变事件。</returns>
+        public static ResourceUpdateChangedEventArgs Create(GameFramework.Resource.ResourceUpdateChangedEventArgs e)
+        {
+            ResourceUpdateChangedEventArgs resourceUpdateChangedEventArgs = ReferencePool.Acquire<ResourceUpdateChangedEventArgs>();
+            resourceUpdateChangedEventArgs.Name = e.Name;
+            resourceUpdateChangedEventArgs.DownloadPath = e.DownloadPath;
+            resourceUpdateChangedEventArgs.DownloadUri = e.DownloadUri;
+            resourceUpdateChangedEventArgs.CurrentLength = e.CurrentLength;
+            resourceUpdateChangedEventArgs.CompressedLength = e.CompressedLength;
+            return resourceUpdateChangedEventArgs;
         }
 
         /// <summary>
@@ -80,27 +109,11 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public override void Clear()
         {
-            Name = default(string);
-            DownloadPath = default(string);
-            DownloadUri = default(string);
-            CurrentLength = default(int);
-            ZipLength = default(int);
-        }
-
-        /// <summary>
-        /// 填充资源更新改变事件。
-        /// </summary>
-        /// <param name="e">内部事件。</param>
-        /// <returns>资源更新改变事件。</returns>
-        public ResourceUpdateChangedEventArgs Fill(GameFramework.Resource.ResourceUpdateChangedEventArgs e)
-        {
-            Name = e.Name;
-            DownloadPath = e.DownloadPath;
-            DownloadUri = e.DownloadUri;
-            CurrentLength = e.CurrentLength;
-            ZipLength = e.ZipLength;
-
-            return this;
+            Name = null;
+            DownloadPath = null;
+            DownloadUri = null;
+            CurrentLength = 0;
+            CompressedLength = 0;
         }
     }
 }

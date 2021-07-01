@@ -1,15 +1,16 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private sealed class InputAccelerationInformationWindow : ScrollableDebuggerWindowBase
         {
@@ -18,16 +19,16 @@ namespace UnityGameFramework.Runtime
                 GUILayout.Label("<b>Input Acceleration Information</b>");
                 GUILayout.BeginVertical("box");
                 {
-                    DrawItem("Acceleration:", Input.acceleration.ToString());
-                    DrawItem("Acceleration Event Count:", Input.accelerationEventCount.ToString());
-                    DrawItem("Acceleration Events:", GetAccelerationEventsString(Input.accelerationEvents));
+                    DrawItem("Acceleration", Input.acceleration.ToString());
+                    DrawItem("Acceleration Event Count", Input.accelerationEventCount.ToString());
+                    DrawItem("Acceleration Events", GetAccelerationEventsString(Input.accelerationEvents));
                 }
                 GUILayout.EndVertical();
             }
 
             private string GetAccelerationEventString(AccelerationEvent accelerationEvent)
             {
-                return string.Format("{0}, {1}", accelerationEvent.acceleration.ToString(), accelerationEvent.deltaTime.ToString());
+                return Utility.Text.Format("{0}, {1}", accelerationEvent.acceleration.ToString(), accelerationEvent.deltaTime.ToString());
             }
 
             private string GetAccelerationEventsString(AccelerationEvent[] accelerationEvents)

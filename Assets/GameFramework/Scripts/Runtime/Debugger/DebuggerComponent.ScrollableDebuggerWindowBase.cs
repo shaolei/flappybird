@@ -1,16 +1,17 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
 using GameFramework.Debugger;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private abstract class ScrollableDebuggerWindowBase : IDebuggerWindow
         {
@@ -19,27 +20,22 @@ namespace UnityGameFramework.Runtime
 
             public virtual void Initialize(params object[] args)
             {
-
             }
 
             public virtual void Shutdown()
             {
-
             }
 
             public virtual void OnEnter()
             {
-
             }
 
             public virtual void OnLeave()
             {
-
             }
 
             public virtual void OnUpdate(float elapseSeconds, float realElapseSeconds)
             {
-
             }
 
             public void OnDraw()
@@ -53,14 +49,52 @@ namespace UnityGameFramework.Runtime
 
             protected abstract void OnDrawScrollableWindow();
 
-            protected void DrawItem(string title, string content)
+            protected static void DrawItem(string title, string content)
             {
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label(title, GUILayout.Width(TitleWidth));
-                    GUILayout.Label(content);
+                    if (GUILayout.Button(content, "label"))
+                    {
+                        CopyToClipboard(content);
+                    }
                 }
                 GUILayout.EndHorizontal();
+            }
+
+            protected static string GetByteLengthString(long byteLength)
+            {
+                if (byteLength < 1024L) // 2 ^ 10
+                {
+                    return Utility.Text.Format("{0} Bytes", byteLength.ToString());
+                }
+
+                if (byteLength < 1048576L) // 2 ^ 20
+                {
+                    return Utility.Text.Format("{0} KB", (byteLength / 1024f).ToString("F2"));
+                }
+
+                if (byteLength < 1073741824L) // 2 ^ 30
+                {
+                    return Utility.Text.Format("{0} MB", (byteLength / 1048576f).ToString("F2"));
+                }
+
+                if (byteLength < 1099511627776L) // 2 ^ 40
+                {
+                    return Utility.Text.Format("{0} GB", (byteLength / 1073741824f).ToString("F2"));
+                }
+
+                if (byteLength < 1125899906842624L) // 2 ^ 50
+                {
+                    return Utility.Text.Format("{0} TB", (byteLength / 1099511627776f).ToString("F2"));
+                }
+
+                if (byteLength < 1152921504606846976L) // 2 ^ 60
+                {
+                    return Utility.Text.Format("{0} PB", (byteLength / 1125899906842624f).ToString("F2"));
+                }
+
+                return Utility.Text.Format("{0} EB", (byteLength / 1152921504606846976f).ToString("F2"));
             }
         }
     }

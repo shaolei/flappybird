@@ -9,28 +9,43 @@ namespace FlappyBird
     /// </summary>
     public class BuildInfo
     {
-        /// <summary>
-        /// 游戏版本
-        /// </summary>
         public string GameVersion
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 内部版本
-        /// </summary>
-        public int InternalVersion
+        public int InternalGameVersion
         {
             get;
             set;
         }
 
-        /// <summary>
-        /// 版本检查地址
-        /// </summary>
         public string CheckVersionUrl
+        {
+            get;
+            set;
+        }
+
+        public string WindowsAppUrl
+        {
+            get;
+            set;
+        }
+
+        public string MacOSAppUrl
+        {
+            get;
+            set;
+        }
+
+        public string IOSAppUrl
+        {
+            get;
+            set;
+        }
+
+        public string AndroidAppUrl
         {
             get;
             set;

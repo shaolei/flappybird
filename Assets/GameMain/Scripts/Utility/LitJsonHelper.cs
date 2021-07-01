@@ -38,7 +38,7 @@ namespace FlappyBird
         /// <returns>反序列化后的对象。</returns>
         public object ToObject(Type objectType, string json)
         {
-            // TODO： 可反射为 ToObject<T>(string json)
+            // TODO: 可反射为 ToObject<T>(string json)
             throw new NotSupportedException("ToObject(Type objectType, string json)");
         }
     }

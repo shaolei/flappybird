@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Procedure;
@@ -92,6 +92,8 @@ namespace UnityGameFramework.Editor
             EditorGUI.EndDisabledGroup();
 
             serializedObject.ApplyModifiedProperties();
+
+            Repaint();
         }
 
         protected override void OnCompileComplete()
@@ -111,7 +113,7 @@ namespace UnityGameFramework.Editor
 
         private void RefreshTypeNames()
         {
-            m_ProcedureTypeNames = Type.GetTypeNames(typeof(ProcedureBase));
+            m_ProcedureTypeNames = Type.GetRuntimeTypeNames(typeof(ProcedureBase));
             ReadAvailableProcedureTypeNames();
             int oldCount = m_CurrentAvailableProcedureTypeNames.Count;
             m_CurrentAvailableProcedureTypeNames = m_CurrentAvailableProcedureTypeNames.Where(x => m_ProcedureTypeNames.Contains(x)).ToList();

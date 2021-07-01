@@ -1,15 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private sealed class InputLocationInformationWindow : ScrollableDebuggerWindowBase
         {
@@ -31,14 +31,17 @@ namespace UnityGameFramework.Runtime
                     }
                     GUILayout.EndHorizontal();
 
-                    DrawItem("Is Enabled By User:", Input.location.isEnabledByUser.ToString());
-                    DrawItem("Status:", Input.location.status.ToString());
-                    DrawItem("Horizontal Accuracy:", Input.location.lastData.horizontalAccuracy.ToString());
-                    DrawItem("Vertical Accuracy:", Input.location.lastData.verticalAccuracy.ToString());
-                    DrawItem("Longitude:", Input.location.lastData.longitude.ToString());
-                    DrawItem("Latitude:", Input.location.lastData.latitude.ToString());
-                    DrawItem("Altitude:", Input.location.lastData.altitude.ToString());
-                    DrawItem("Timestamp:", Input.location.lastData.timestamp.ToString());
+                    DrawItem("Is Enabled By User", Input.location.isEnabledByUser.ToString());
+                    DrawItem("Status", Input.location.status.ToString());
+                    if (Input.location.status == LocationServiceStatus.Running)
+                    {
+                        DrawItem("Horizontal Accuracy", Input.location.lastData.horizontalAccuracy.ToString());
+                        DrawItem("Vertical Accuracy", Input.location.lastData.verticalAccuracy.ToString());
+                        DrawItem("Longitude", Input.location.lastData.longitude.ToString());
+                        DrawItem("Latitude", Input.location.lastData.latitude.ToString());
+                        DrawItem("Altitude", Input.location.lastData.altitude.ToString());
+                        DrawItem("Timestamp", Input.location.lastData.timestamp.ToString());
+                    }
                 }
                 GUILayout.EndVertical();
             }

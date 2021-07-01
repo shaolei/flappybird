@@ -1,11 +1,16 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
+using System;
+using System.IO;
+using System.Text;
 using UnityEditor;
+using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace UnityGameFramework.Editor
@@ -50,12 +55,53 @@ namespace UnityGameFramework.Editor
                 }
             }
 
-            if (EditorApplication.isPlaying && PrefabUtility.GetPrefabType(t.gameObject) != PrefabType.Prefab)
+            if (EditorApplication.isPlaying && IsPrefabInHierarchy(t.gameObject))
             {
                 EditorGUILayout.LabelField("Total Agent Count", t.TotalAgentCount.ToString());
                 EditorGUILayout.LabelField("Free Agent Count", t.FreeAgentCount.ToString());
                 EditorGUILayout.LabelField("Working Agent Count", t.WorkingAgentCount.ToString());
                 EditorGUILayout.LabelField("Waiting Agent Count", t.WaitingTaskCount.ToString());
+                EditorGUILayout.BeginVertical("box");
+                {
+                    TaskInfo[] webRequestInfos = t.GetAllWebRequestInfos();
+                    if (webRequestInfos.Length > 0)
+                    {
+                        foreach (TaskInfo webRequestInfo in webRequestInfos)
+                        {
+                            DrawWebRequestInfo(webRequestInfo);
+                        }
+
+                        if (GUILayout.Button("Export CSV Data"))
+                        {
+                            string exportFileName = EditorUtility.SaveFilePanel("Export CSV Data", string.Empty, "WebRequest Task Data.csv", string.Empty);
+                            if (!string.IsNullOrEmpty(exportFileName))
+                            {
+                                try
+                                {
+                                    int index = 0;
+                                    string[] data = new string[webRequestInfos.Length + 1];
+                                    data[index++] = "WebRequest Uri,Serial Id,Tag,Priority,Status";
+                                    foreach (TaskInfo webRequestInfo in webRequestInfos)
+                                    {
+                                        data[index++] = Utility.Text.Format("{0},{1},{2},{3},{4}", webRequestInfo.Description, webRequestInfo.SerialId.ToString(), webRequestInfo.Tag ?? string.Empty, webRequestInfo.Priority.ToString(), webRequestInfo.Status.ToString());
+                                    }
+
+                                    File.WriteAllLines(exportFileName, data, Encoding.UTF8);
+                                    Debug.Log(Utility.Text.Format("Export web request task CSV data to '{0}' success.", exportFileName));
+                                }
+                                catch (Exception exception)
+                                {
+                                    Debug.LogError(Utility.Text.Format("Export web request task CSV data to '{0}' failure, exception is '{1}'.", exportFileName, exception.ToString()));
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        GUILayout.Label("WebRequset Task is Empty ...");
+                    }
+                }
+                EditorGUILayout.EndVertical();
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -79,6 +125,11 @@ namespace UnityGameFramework.Editor
             m_WebRequestAgentHelperInfo.Init(serializedObject);
 
             RefreshTypeNames();
+        }
+
+        private void DrawWebRequestInfo(TaskInfo webRequestInfo)
+        {
+            EditorGUILayout.LabelField(webRequestInfo.Description, Utility.Text.Format("[SerialId]{0} [Tag]{1} [Priority]{2} [Status]{3}", webRequestInfo.SerialId.ToString(), webRequestInfo.Tag ?? "<None>", webRequestInfo.Priority.ToString(), webRequestInfo.Status.ToString()));
         }
 
         private void RefreshTypeNames()

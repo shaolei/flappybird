@@ -1,10 +1,11 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
 using GameFramework.Event;
 using GameFramework.Network;
 
@@ -16,12 +17,21 @@ namespace UnityGameFramework.Runtime
     public sealed class NetworkConnectedEventArgs : GameEventArgs
     {
         /// <summary>
-        /// 连接成功事件编号。
+        /// 网络连接成功事件编号。
         /// </summary>
         public static readonly int EventId = typeof(NetworkConnectedEventArgs).GetHashCode();
 
         /// <summary>
-        /// 获取连接成功事件编号。
+        /// 初始化网络连接成功事件的新实例。
+        /// </summary>
+        public NetworkConnectedEventArgs()
+        {
+            NetworkChannel = null;
+            UserData = null;
+        }
+
+        /// <summary>
+        /// 获取网络连接成功事件编号。
         /// </summary>
         public override int Id
         {
@@ -50,25 +60,25 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 创建网络连接成功事件。
+        /// </summary>
+        /// <param name="e">内部事件。</param>
+        /// <returns>创建的网络连接成功事件。</returns>
+        public static NetworkConnectedEventArgs Create(GameFramework.Network.NetworkConnectedEventArgs e)
+        {
+            NetworkConnectedEventArgs networkConnectedEventArgs = ReferencePool.Acquire<NetworkConnectedEventArgs>();
+            networkConnectedEventArgs.NetworkChannel = e.NetworkChannel;
+            networkConnectedEventArgs.UserData = e.UserData;
+            return networkConnectedEventArgs;
+        }
+
+        /// <summary>
         /// 清理网络连接成功事件。
         /// </summary>
         public override void Clear()
         {
-            NetworkChannel = default(INetworkChannel);
-            UserData = default(object);
-        }
-
-        /// <summary>
-        /// 填充网络连接成功事件。
-        /// </summary>
-        /// <param name="e">内部事件。</param>
-        /// <returns>网络连接成功事件。</returns>
-        public NetworkConnectedEventArgs Fill(GameFramework.Network.NetworkConnectedEventArgs e)
-        {
-            NetworkChannel = e.NetworkChannel;
-            UserData = e.UserData;
-
-            return this;
+            NetworkChannel = null;
+            UserData = null;
         }
     }
 }

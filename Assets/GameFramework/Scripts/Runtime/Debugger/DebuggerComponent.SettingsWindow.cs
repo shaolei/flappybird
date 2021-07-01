@@ -1,16 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
-using GameFramework;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private sealed class SettingsWindow : ScrollableDebuggerWindowBase
         {
@@ -208,11 +207,9 @@ namespace UnityGameFramework.Runtime
                     }
                     GUILayout.EndHorizontal();
 
-                    if (GUILayout.Button("Reset Window Settings", GUILayout.Height(30f)))
+                    if (GUILayout.Button("Reset Layout", GUILayout.Height(30f)))
                     {
-                        m_DebuggerComponent.IconRect = DefaultIconRect;
-                        m_DebuggerComponent.WindowRect = DefaultWindowRect;
-                        m_DebuggerComponent.WindowScale = DefaultWindowScale;
+                        m_DebuggerComponent.ResetLayout();
                     }
                 }
                 GUILayout.EndVertical();

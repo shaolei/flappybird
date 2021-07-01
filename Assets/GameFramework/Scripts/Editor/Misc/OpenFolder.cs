@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -15,57 +15,76 @@ namespace UnityGameFramework.Editor
     /// <summary>
     /// 打开文件夹相关的实用函数。
     /// </summary>
-    internal static class OpenFolder
+    public static class OpenFolder
     {
         /// <summary>
-        /// 打开 Temporary Cache Path 文件夹。
+        /// 打开 Data Path 文件夹。
         /// </summary>
-        [MenuItem("Game Framework/Open Folder/Temporary Cache Path", false, 10)]
-        private static void OpenFolderTemporaryCachePath()
+        [MenuItem("Game Framework/Open Folder/Data Path", false, 10)]
+        public static void OpenFolderDataPath()
         {
-            InternalOpenFolder(Application.temporaryCachePath);
+            Execute(Application.dataPath);
         }
 
         /// <summary>
         /// 打开 Persistent Data Path 文件夹。
         /// </summary>
         [MenuItem("Game Framework/Open Folder/Persistent Data Path", false, 11)]
-        private static void OpenFolderPersistentDataPath()
+        public static void OpenFolderPersistentDataPath()
         {
-            InternalOpenFolder(Application.persistentDataPath);
+            Execute(Application.persistentDataPath);
         }
 
         /// <summary>
         /// 打开 Streaming Assets Path 文件夹。
         /// </summary>
         [MenuItem("Game Framework/Open Folder/Streaming Assets Path", false, 12)]
-        private static void OpenFolderStreamingAssetsPath()
+        public static void OpenFolderStreamingAssetsPath()
         {
-            InternalOpenFolder(Application.streamingAssetsPath);
+            Execute(Application.streamingAssetsPath);
         }
 
         /// <summary>
-        /// 打开 Data Path 文件夹。
+        /// 打开 Temporary Cache Path 文件夹。
         /// </summary>
-        [MenuItem("Game Framework/Open Folder/Data Path", false, 13)]
-        private static void OpenFolderDataPath()
+        [MenuItem("Game Framework/Open Folder/Temporary Cache Path", false, 13)]
+        public static void OpenFolderTemporaryCachePath()
         {
-            InternalOpenFolder(Application.dataPath);
+            Execute(Application.temporaryCachePath);
         }
 
-        private static void InternalOpenFolder(string folder)
+#if UNITY_2018_3_OR_NEWER
+
+        /// <summary>
+        /// 打开 Console Log Path 文件夹。
+        /// </summary>
+        [MenuItem("Game Framework/Open Folder/Console Log Path", false, 14)]
+        public static void OpenFolderConsoleLogPath()
         {
-            folder = string.Format("\"{0}\"", folder);
+            Execute(System.IO.Path.GetDirectoryName(Application.consoleLogPath));
+        }
+
+#endif
+
+        /// <summary>
+        /// 打开指定路径的文件夹。
+        /// </summary>
+        /// <param name="folder">要打开的文件夹的路径。</param>
+        public static void Execute(string folder)
+        {
+            folder = Utility.Text.Format("\"{0}\"", folder);
             switch (Application.platform)
             {
                 case RuntimePlatform.WindowsEditor:
                     Process.Start("Explorer.exe", folder.Replace('/', '\\'));
                     break;
+
                 case RuntimePlatform.OSXEditor:
                     Process.Start("open", folder);
                     break;
+
                 default:
-                    throw new GameFrameworkException(string.Format("Not support open folder on '{0}' platform.", Application.platform.ToString()));
+                    throw new GameFrameworkException(Utility.Text.Format("Not support open folder on '{0}' platform.", Application.platform.ToString()));
             }
         }
     }

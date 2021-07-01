@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEditor;
@@ -36,11 +36,15 @@ namespace UnityGameFramework.Editor
 
             UIComponent t = (UIComponent)target;
 
-            EditorGUILayout.PropertyField(m_EnableOpenUIFormSuccessEvent);
-            EditorGUILayout.PropertyField(m_EnableOpenUIFormFailureEvent);
-            EditorGUILayout.PropertyField(m_EnableOpenUIFormUpdateEvent);
-            EditorGUILayout.PropertyField(m_EnableOpenUIFormDependencyAssetEvent);
-            EditorGUILayout.PropertyField(m_EnableCloseUIFormCompleteEvent);
+            EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
+            {
+                EditorGUILayout.PropertyField(m_EnableOpenUIFormSuccessEvent);
+                EditorGUILayout.PropertyField(m_EnableOpenUIFormFailureEvent);
+                EditorGUILayout.PropertyField(m_EnableOpenUIFormUpdateEvent);
+                EditorGUILayout.PropertyField(m_EnableOpenUIFormDependencyAssetEvent);
+                EditorGUILayout.PropertyField(m_EnableCloseUIFormCompleteEvent);
+            }
+            EditorGUI.EndDisabledGroup();
 
             float instanceAutoReleaseInterval = EditorGUILayout.DelayedFloatField("Instance Auto Release Interval", m_InstanceAutoReleaseInterval.floatValue);
             if (instanceAutoReleaseInterval != m_InstanceAutoReleaseInterval.floatValue)
@@ -103,7 +107,7 @@ namespace UnityGameFramework.Editor
             }
             EditorGUI.EndDisabledGroup();
 
-            if (EditorApplication.isPlaying && PrefabUtility.GetPrefabType(t.gameObject) != PrefabType.Prefab)
+            if (EditorApplication.isPlaying && IsPrefabInHierarchy(t.gameObject))
             {
                 EditorGUILayout.LabelField("UI Group Count", t.UIGroupCount.ToString());
             }

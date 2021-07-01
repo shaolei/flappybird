@@ -12,18 +12,23 @@ namespace FlappyBird
         protected override void OnOpen(object userData)
         {
             base.OnOpen(userData);
-            m_ProcedureMenu = (ProcedureMenu)userData;
+            m_ProcedureMenu = (ProcedureMenu) userData;
+            if (m_ProcedureMenu == null)
+            {
+                Log.Warning("ProcedureMenu is invalid when open MenuForm.");
+                return;
+            }
         }
 
-        protected override void OnClose(object userData)
+        protected override void OnClose(bool isShutdown, object userData)
         {
             m_ProcedureMenu = null;
-            base.OnClose(userData);
+            base.OnClose(isShutdown, userData);
         }
 
         public void OnStartButtonClick()
         {
-            m_ProcedureMenu.IsStartGame = true;
+            m_ProcedureMenu.StartGame();
         }
 
         public void OnSettingButtonClick()
@@ -32,4 +37,3 @@ namespace FlappyBird
         }
     }
 }
-

@@ -7,25 +7,29 @@
     {
         Undefined = 0,
 
+        /// <summary>
+        /// 弹出框。
+        /// </summary>
+        DialogForm = 1,
 
         /// <summary>
         /// 菜单界面
         /// </summary>
-        MenuForm = 1,
+        MenuForm = 100,
  
         /// <summary>
         /// 设置界面
         /// </summary>
-        SettingForm = 2,
+        SettingForm = 101,
  
         /// <summary>
         /// 积分界面
         /// </summary>
-        ScoreForm = 3,
+        ScoreForm = 102,
  
         /// <summary>
         /// 游戏结束界面
         /// </summary>
-        GameOverForm = 4
+        GameOverForm = 103
     }
 }

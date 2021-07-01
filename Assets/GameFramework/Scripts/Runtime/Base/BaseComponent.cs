@@ -1,15 +1,14 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
 using GameFramework.Localization;
 using GameFramework.Resource;
 using System;
-using System.Threading;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
@@ -23,8 +22,6 @@ namespace UnityGameFramework.Runtime
     {
         private const int DefaultDpi = 96;  // default windows dpi
 
-        private string m_GameVersion = string.Empty;
-        private int m_InternalApplicationVersion = 0;
         private float m_GameSpeedBeforePause = 1f;
 
         [SerializeField]
@@ -34,16 +31,16 @@ namespace UnityGameFramework.Runtime
         private Language m_EditorLanguage = Language.Unspecified;
 
         [SerializeField]
-        private string m_LogHelperTypeName = "UnityGameFramework.Runtime.LogHelper";
+        private string m_VersionHelperTypeName = "UnityGameFramework.Runtime.DefaultVersionHelper";
 
         [SerializeField]
-        private string m_ZipHelperTypeName = "UnityGameFramework.Runtime.ZipHelper";
+        private string m_LogHelperTypeName = "UnityGameFramework.Runtime.DefaultLogHelper";
 
         [SerializeField]
-        private string m_JsonHelperTypeName = "UnityGameFramework.Runtime.JsonHelper";
+        private string m_CompressionHelperTypeName = "UnityGameFramework.Runtime.DefaultCompressionHelper";
 
         [SerializeField]
-        private string m_ProfilerHelperTypeName = "UnityGameFramework.Runtime.ProfilerHelper";
+        private string m_JsonHelperTypeName = "UnityGameFramework.Runtime.DefaultJsonHelper";
 
         [SerializeField]
         private int m_FrameRate = 30;
@@ -56,36 +53,6 @@ namespace UnityGameFramework.Runtime
 
         [SerializeField]
         private bool m_NeverSleep = true;
-
-        /// <summary>
-        /// 获取或设置游戏版本号。
-        /// </summary>
-        public string GameVersion
-        {
-            get
-            {
-                return m_GameVersion;
-            }
-            set
-            {
-                m_GameVersion = value;
-            }
-        }
-
-        /// <summary>
-        /// 获取或设置应用程序内部版本号。
-        /// </summary>
-        public int InternalApplicationVersion
-        {
-            get
-            {
-                return m_InternalApplicationVersion;
-            }
-            set
-            {
-                m_InternalApplicationVersion = value;
-            }
-        }
 
         /// <summary>
         /// 获取或设置是否使用编辑器资源模式（仅编辑器内有效）。
@@ -152,7 +119,7 @@ namespace UnityGameFramework.Runtime
             }
             set
             {
-                Time.timeScale = m_GameSpeed = (value >= 0f ? value : 0f);
+                Time.timeScale = m_GameSpeed = value >= 0f ? value : 0f;
             }
         }
 
@@ -216,13 +183,15 @@ namespace UnityGameFramework.Runtime
         {
             base.Awake();
 
+            InitVersionHelper();
             InitLogHelper();
-            Log.Info("Game Framework version is {0}. Unity Game Framework version is {1}.", GameFrameworkEntry.Version, GameEntry.Version);
+            Log.Info("Game Framework Version: {0}", GameFramework.Version.GameFrameworkVersion);
+            Log.Info("Game Version: {0} ({1})", GameFramework.Version.GameVersion, GameFramework.Version.InternalGameVersion.ToString());
+            Log.Info("Unity Version: {0}", Application.unityVersion);
 
 #if UNITY_5_3_OR_NEWER || UNITY_5_3
-            InitZipHelper();
+            InitCompressionHelper();
             InitJsonHelper();
-            InitProfilerHelper();
 
             Utility.Converter.ScreenDpi = Screen.dpi;
             if (Utility.Converter.ScreenDpi <= 0)
@@ -251,7 +220,6 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-
         }
 
         private void Update()
@@ -259,11 +227,16 @@ namespace UnityGameFramework.Runtime
             GameFrameworkEntry.Update(Time.deltaTime, Time.unscaledDeltaTime);
         }
 
-        private void OnDestroy()
+        private void OnApplicationQuit()
         {
 #if UNITY_5_6_OR_NEWER
             Application.lowMemory -= OnLowMemory;
 #endif
+            StopAllCoroutines();
+        }
+
+        private void OnDestroy()
+        {
             GameFrameworkEntry.Shutdown();
         }
 
@@ -312,6 +285,28 @@ namespace UnityGameFramework.Runtime
             Destroy(gameObject);
         }
 
+        private void InitVersionHelper()
+        {
+            if (string.IsNullOrEmpty(m_VersionHelperTypeName))
+            {
+                return;
+            }
+
+            Type versionHelperType = Utility.Assembly.GetType(m_VersionHelperTypeName);
+            if (versionHelperType == null)
+            {
+                throw new GameFrameworkException(Utility.Text.Format("Can not find version helper type '{0}'.", m_VersionHelperTypeName));
+            }
+
+            GameFramework.Version.IVersionHelper versionHelper = (GameFramework.Version.IVersionHelper)Activator.CreateInstance(versionHelperType);
+            if (versionHelper == null)
+            {
+                throw new GameFrameworkException(Utility.Text.Format("Can not create version helper instance '{0}'.", m_VersionHelperTypeName));
+            }
+
+            GameFramework.Version.SetVersionHelper(versionHelper);
+        }
+
         private void InitLogHelper()
         {
             if (string.IsNullOrEmpty(m_LogHelperTypeName))
@@ -322,40 +317,40 @@ namespace UnityGameFramework.Runtime
             Type logHelperType = Utility.Assembly.GetType(m_LogHelperTypeName);
             if (logHelperType == null)
             {
-                throw new GameFrameworkException(string.Format("Can not find log helper type '{0}'.", m_LogHelperTypeName));
+                throw new GameFrameworkException(Utility.Text.Format("Can not find log helper type '{0}'.", m_LogHelperTypeName));
             }
 
-            Log.ILogHelper logHelper = (Log.ILogHelper)Activator.CreateInstance(logHelperType);
+            GameFrameworkLog.ILogHelper logHelper = (GameFrameworkLog.ILogHelper)Activator.CreateInstance(logHelperType);
             if (logHelper == null)
             {
-                throw new GameFrameworkException(string.Format("Can not create log helper instance '{0}'.", m_LogHelperTypeName));
+                throw new GameFrameworkException(Utility.Text.Format("Can not create log helper instance '{0}'.", m_LogHelperTypeName));
             }
 
-            Log.SetLogHelper(logHelper);
+            GameFrameworkLog.SetLogHelper(logHelper);
         }
 
-        private void InitZipHelper()
+        private void InitCompressionHelper()
         {
-            if (string.IsNullOrEmpty(m_ZipHelperTypeName))
+            if (string.IsNullOrEmpty(m_CompressionHelperTypeName))
             {
                 return;
             }
 
-            Type zipHelperType = Utility.Assembly.GetType(m_ZipHelperTypeName);
-            if (zipHelperType == null)
+            Type compressionHelperType = Utility.Assembly.GetType(m_CompressionHelperTypeName);
+            if (compressionHelperType == null)
             {
-                Log.Error("Can not find Zip helper type '{0}'.", m_ZipHelperTypeName);
+                Log.Error("Can not find compression helper type '{0}'.", m_CompressionHelperTypeName);
                 return;
             }
 
-            Utility.Zip.IZipHelper zipHelper = (Utility.Zip.IZipHelper)Activator.CreateInstance(zipHelperType);
-            if (zipHelper == null)
+            Utility.Compression.ICompressionHelper compressionHelper = (Utility.Compression.ICompressionHelper)Activator.CreateInstance(compressionHelperType);
+            if (compressionHelper == null)
             {
-                Log.Error("Can not create Zip helper instance '{0}'.", m_ZipHelperTypeName);
+                Log.Error("Can not create compression helper instance '{0}'.", m_CompressionHelperTypeName);
                 return;
             }
 
-            Utility.Zip.SetZipHelper(zipHelper);
+            Utility.Compression.SetCompressionHelper(compressionHelper);
         }
 
         private void InitJsonHelper()
@@ -380,30 +375,6 @@ namespace UnityGameFramework.Runtime
             }
 
             Utility.Json.SetJsonHelper(jsonHelper);
-        }
-
-        private void InitProfilerHelper()
-        {
-            if (string.IsNullOrEmpty(m_ProfilerHelperTypeName))
-            {
-                return;
-            }
-
-            Type profilerHelperType = Utility.Assembly.GetType(m_ProfilerHelperTypeName);
-            if (profilerHelperType == null)
-            {
-                Log.Error("Can not find profiler helper type '{0}'.", m_ProfilerHelperTypeName);
-                return;
-            }
-
-            Utility.Profiler.IProfilerHelper profilerHelper = (Utility.Profiler.IProfilerHelper)Activator.CreateInstance(profilerHelperType, Thread.CurrentThread);
-            if (profilerHelper == null)
-            {
-                Log.Error("Can not create profiler helper instance '{0}'.", m_ProfilerHelperTypeName);
-                return;
-            }
-
-            Utility.Profiler.SetProfilerHelper(profilerHelper);
         }
 
         private void OnLowMemory()

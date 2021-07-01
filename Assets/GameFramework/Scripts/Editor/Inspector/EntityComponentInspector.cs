@@ -1,10 +1,12 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
+using GameFramework.Entity;
 using UnityEditor;
 using UnityGameFramework.Runtime;
 
@@ -13,11 +15,8 @@ namespace UnityGameFramework.Editor
     [CustomEditor(typeof(EntityComponent))]
     internal sealed class EntityComponentInspector : GameFrameworkInspector
     {
-        private SerializedProperty m_EnableShowEntitySuccessEvent = null;
-        private SerializedProperty m_EnableShowEntityFailureEvent = null;
         private SerializedProperty m_EnableShowEntityUpdateEvent = null;
         private SerializedProperty m_EnableShowEntityDependencyAssetEvent = null;
-        private SerializedProperty m_EnableHideEntityCompleteEvent = null;
         private SerializedProperty m_InstanceRoot = null;
         private SerializedProperty m_EntityGroups = null;
 
@@ -32,14 +31,10 @@ namespace UnityGameFramework.Editor
 
             EntityComponent t = (EntityComponent)target;
 
-            EditorGUILayout.PropertyField(m_EnableShowEntitySuccessEvent);
-            EditorGUILayout.PropertyField(m_EnableShowEntityFailureEvent);
-            EditorGUILayout.PropertyField(m_EnableShowEntityUpdateEvent);
-            EditorGUILayout.PropertyField(m_EnableShowEntityDependencyAssetEvent);
-            EditorGUILayout.PropertyField(m_EnableHideEntityCompleteEvent);
-
             EditorGUI.BeginDisabledGroup(EditorApplication.isPlayingOrWillChangePlaymode);
             {
+                EditorGUILayout.PropertyField(m_EnableShowEntityUpdateEvent);
+                EditorGUILayout.PropertyField(m_EnableShowEntityDependencyAssetEvent);
                 EditorGUILayout.PropertyField(m_InstanceRoot);
                 m_EntityHelperInfo.Draw();
                 m_EntityGroupHelperInfo.Draw();
@@ -47,10 +42,15 @@ namespace UnityGameFramework.Editor
             }
             EditorGUI.EndDisabledGroup();
 
-            if (EditorApplication.isPlaying && PrefabUtility.GetPrefabType(t.gameObject) != PrefabType.Prefab)
+            if (EditorApplication.isPlaying && IsPrefabInHierarchy(t.gameObject))
             {
-                EditorGUILayout.LabelField("Entity Count", t.EntityCount.ToString());
                 EditorGUILayout.LabelField("Entity Group Count", t.EntityGroupCount.ToString());
+                EditorGUILayout.LabelField("Entity Count (Total)", t.EntityCount.ToString());
+                IEntityGroup[] entityGroups = t.GetAllEntityGroups();
+                foreach (IEntityGroup entityGroup in entityGroups)
+                {
+                    EditorGUILayout.LabelField(Utility.Text.Format("Entity Count ({0})", entityGroup.Name), entityGroup.EntityCount.ToString());
+                }
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -67,11 +67,8 @@ namespace UnityGameFramework.Editor
 
         private void OnEnable()
         {
-            m_EnableShowEntitySuccessEvent = serializedObject.FindProperty("m_EnableShowEntitySuccessEvent");
-            m_EnableShowEntityFailureEvent = serializedObject.FindProperty("m_EnableShowEntityFailureEvent");
             m_EnableShowEntityUpdateEvent = serializedObject.FindProperty("m_EnableShowEntityUpdateEvent");
             m_EnableShowEntityDependencyAssetEvent = serializedObject.FindProperty("m_EnableShowEntityDependencyAssetEvent");
-            m_EnableHideEntityCompleteEvent = serializedObject.FindProperty("m_EnableHideEntityCompleteEvent");
             m_InstanceRoot = serializedObject.FindProperty("m_InstanceRoot");
             m_EntityGroups = serializedObject.FindProperty("m_EntityGroups");
 

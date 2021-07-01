@@ -1,6 +1,12 @@
-﻿using GameFramework;
+﻿//------------------------------------------------------------
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
+//------------------------------------------------------------
+
+using GameFramework;
 using GameFramework.Event;
-using GameFramework.Procedure;
 using GameFramework.Resource;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,13 +15,27 @@ using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedure
 
 namespace FlappyBird
 {
-    /// <summary>
-    /// 预加载流程
-    /// </summary>
     public class ProcedurePreload : ProcedureBase
     {
+        public static readonly string[] DataTableNames = new string[]
+        {
+            "Entity",
+            "Music",
+            "Scene",
+            "Sound",
+            "UIForm",
+            "UISound",
+        };
+
         private Dictionary<string, bool> m_LoadedFlag = new Dictionary<string, bool>();
 
+        public override bool UseNativeDialog
+        {
+            get
+            {
+                return true;
+            }
+        }
 
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
@@ -49,67 +69,64 @@ namespace FlappyBird
         {
             base.OnUpdate(procedureOwner, elapseSeconds, realElapseSeconds);
 
-            IEnumerator<bool> iter = m_LoadedFlag.Values.GetEnumerator();
-            while (iter.MoveNext())
+            foreach (KeyValuePair<string, bool> loadedFlag in m_LoadedFlag)
             {
-                if (!iter.Current)
+                if (!loadedFlag.Value)
                 {
                     return;
                 }
             }
 
-            // TODO：这里开始，切换到你的场景，场景编号可在DefaultConfig中配置
-            procedureOwner.SetData<VarInt>(Constant.ProcedureData.NextSceneId, GameEntry.Config.GetInt("Scene.Menu"));
+            procedureOwner.SetData<VarInt32>("NextSceneId", GameEntry.Config.GetInt("Scene.Menu"));
             ChangeState<ProcedureChangeScene>(procedureOwner);
         }
 
         private void PreloadResources()
         {
-            //加载默认配置
+            // Preload configs
             LoadConfig("DefaultConfig");
 
-            //加载数据表
-            LoadDataTable("Entity");
-            LoadDataTable("Music");
-            LoadDataTable("Scene");
-            LoadDataTable("Sound");
-            LoadDataTable("UIForm");
-            LoadDataTable("UISound");
-            //TODO：继续加载你的自定义数据表
+            // Preload data tables
+            foreach (string dataTableName in DataTableNames)
+            {
+                LoadDataTable(dataTableName);
+            }
 
-            //TODO：根据需求选择是否加载语言的默认字典与字体
-            //加载当前语言的默认字典
-            //LoadDictionary("Default");
+            // Preload dictionaries
+            LoadDictionary("Default");
 
-            //加载字体
-            //LoadFont("MainFont");
+            // Preload fonts
+            LoadFont("MainFont");
         }
 
         private void LoadConfig(string configName)
         {
-            m_LoadedFlag.Add(string.Format("Config.{0}", configName), false);
-            GameEntry.Config.LoadConfig(configName, this);
+            string configAssetName = AssetUtility.GetConfigAsset(configName, false);
+            m_LoadedFlag.Add(configAssetName, false);
+            GameEntry.Config.ReadData(configAssetName, this);
         }
 
         private void LoadDataTable(string dataTableName)
         {
-            m_LoadedFlag.Add(string.Format("DataTable.{0}", dataTableName), false);
-            GameEntry.DataTable.LoadDataTable(dataTableName, this);
+            string dataTableAssetName = AssetUtility.GetDataTableAsset(dataTableName, false);
+            m_LoadedFlag.Add(dataTableAssetName, false);
+            GameEntry.DataTable.LoadDataTable(dataTableName, dataTableAssetName, this);
         }
 
         private void LoadDictionary(string dictionaryName)
         {
-            m_LoadedFlag.Add(string.Format("Dictionary.{0}", dictionaryName), false);
-            GameEntry.Localization.LoadDictionary(dictionaryName, this);
+            string dictionaryAssetName = AssetUtility.GetDictionaryAsset(dictionaryName, false);
+            m_LoadedFlag.Add(dictionaryAssetName, false);
+            GameEntry.Localization.ReadData(dictionaryAssetName, this);
         }
 
         private void LoadFont(string fontName)
         {
-            m_LoadedFlag.Add(string.Format("Font.{0}", fontName), false);
-            GameEntry.Resource.LoadAsset(AssetUtility.GetFontAsset(fontName), new LoadAssetCallbacks(
+            m_LoadedFlag.Add(Utility.Text.Format("Font.{0}", fontName), false);
+            GameEntry.Resource.LoadAsset(AssetUtility.GetFontAsset(fontName), Constant.AssetPriority.FontAsset, new LoadAssetCallbacks(
                 (assetName, asset, duration, userData) =>
                 {
-                    m_LoadedFlag[string.Format("Font.{0}", fontName)] = true;
+                    m_LoadedFlag[Utility.Text.Format("Font.{0}", fontName)] = true;
                     UGuiForm.SetMainFont((Font)asset);
                     Log.Info("Load font '{0}' OK.", fontName);
                 },
@@ -128,8 +145,8 @@ namespace FlappyBird
                 return;
             }
 
-            m_LoadedFlag[string.Format("Config.{0}", ne.ConfigName)] = true;
-            Log.Info("Load config '{0}' OK.", ne.ConfigName);
+            m_LoadedFlag[ne.ConfigAssetName] = true;
+            Log.Info("Load config '{0}' OK.", ne.ConfigAssetName);
         }
 
         private void OnLoadConfigFailure(object sender, GameEventArgs e)
@@ -140,7 +157,7 @@ namespace FlappyBird
                 return;
             }
 
-            Log.Error("Can not load config '{0}' from '{1}' with error message '{2}'.", ne.ConfigName, ne.ConfigAssetName, ne.ErrorMessage);
+            Log.Error("Can not load config '{0}' from '{1}' with error message '{2}'.", ne.ConfigAssetName, ne.ConfigAssetName, ne.ErrorMessage);
         }
 
         private void OnLoadDataTableSuccess(object sender, GameEventArgs e)
@@ -151,8 +168,8 @@ namespace FlappyBird
                 return;
             }
 
-            m_LoadedFlag[string.Format("DataTable.{0}", ne.DataTableName)] = true;
-            Log.Info("Load data table '{0}' OK.", ne.DataTableName);
+            m_LoadedFlag[ne.DataTableAssetName] = true;
+            Log.Info("Load data table '{0}' OK.", ne.DataTableAssetName);
         }
 
         private void OnLoadDataTableFailure(object sender, GameEventArgs e)
@@ -163,7 +180,7 @@ namespace FlappyBird
                 return;
             }
 
-            Log.Error("Can not load data table '{0}' from '{1}' with error message '{2}'.", ne.DataTableName, ne.DataTableAssetName, ne.ErrorMessage);
+            Log.Error("Can not load data table '{0}' from '{1}' with error message '{2}'.", ne.DataTableAssetName, ne.DataTableAssetName, ne.ErrorMessage);
         }
 
         private void OnLoadDictionarySuccess(object sender, GameEventArgs e)
@@ -174,8 +191,8 @@ namespace FlappyBird
                 return;
             }
 
-            m_LoadedFlag[string.Format("Dictionary.{0}", ne.DictionaryName)] = true;
-            Log.Info("Load dictionary '{0}' OK.", ne.DictionaryName);
+            m_LoadedFlag[ne.DictionaryAssetName] = true;
+            Log.Info("Load dictionary '{0}' OK.", ne.DictionaryAssetName);
         }
 
         private void OnLoadDictionaryFailure(object sender, GameEventArgs e)
@@ -186,7 +203,7 @@ namespace FlappyBird
                 return;
             }
 
-            Log.Error("Can not load dictionary '{0}' from '{1}' with error message '{2}'.", ne.DictionaryName, ne.DictionaryAssetName, ne.ErrorMessage);
+            Log.Error("Can not load dictionary '{0}' from '{1}' with error message '{2}'.", ne.DictionaryAssetName, ne.DictionaryAssetName, ne.ErrorMessage);
         }
     }
 }

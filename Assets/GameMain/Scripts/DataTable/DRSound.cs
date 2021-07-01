@@ -1,33 +1,52 @@
-﻿using GameFramework.DataTable;
+﻿//------------------------------------------------------------
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
+//------------------------------------------------------------
+// 此文件由工具自动生成，请勿直接修改。
+// 生成时间：2021-07-01 13:21:24.390
+//------------------------------------------------------------
+
+using GameFramework;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace FlappyBird
 {
     /// <summary>
     /// 声音配置表。
     /// </summary>
-    public class DRSound : IDataRow
+    public class DRSound : DataRowBase
     {
+        private int m_Id = 0;
+
         /// <summary>
-        /// 声音编号。
+        /// 获取声音编号。
         /// </summary>
-        public int Id
+        public override int Id
         {
-            get;
-            protected set;
+            get
+            {
+                return m_Id;
+            }
         }
 
         /// <summary>
-        /// 资源名称。
+        /// 获取资源名称。
         /// </summary>
-        public string AssetName
+        public string ResourceName
         {
             get;
             private set;
         }
 
         /// <summary>
-        /// 优先级。
+        /// 获取优先级（默认0，128最高，-128最低）。
         /// </summary>
         public int Priority
         {
@@ -36,7 +55,7 @@ namespace FlappyBird
         }
 
         /// <summary>
-        /// 是否循环。
+        /// 获取是否循环。
         /// </summary>
         public bool Loop
         {
@@ -45,7 +64,7 @@ namespace FlappyBird
         }
 
         /// <summary>
-        /// 音量。
+        /// 获取音量（0~1）。
         /// </summary>
         public float Volume
         {
@@ -54,7 +73,7 @@ namespace FlappyBird
         }
 
         /// <summary>
-        /// 声音空间混合量。
+        /// 获取声音空间混合量（0为2D，1为3D，中间值混合效果）。
         /// </summary>
         public float SpatialBlend
         {
@@ -63,7 +82,7 @@ namespace FlappyBird
         }
 
         /// <summary>
-        /// 声音最大距离。
+        /// 获取声音最大距离。
         /// </summary>
         public float MaxDistance
         {
@@ -71,24 +90,52 @@ namespace FlappyBird
             private set;
         }
 
-        public void ParseDataRow(string dataRowText)
+        public override bool ParseDataRow(string dataRowString, object userData)
         {
-            string[] text = DataTableExtension.SplitDataRow(dataRowText);
+            string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
+            for (int i = 0; i < columnStrings.Length; i++)
+            {
+                columnStrings[i] = columnStrings[i].Trim(DataTableExtension.DataTrimSeparators);
+            }
+
             int index = 0;
             index++;
-            Id = int.Parse(text[index++]);
+            m_Id = int.Parse(columnStrings[index++]);
             index++;
-            AssetName = text[index++];
-            Priority = int.Parse(text[index++]);
-            Loop = bool.Parse(text[index++]);
-            Volume = float.Parse(text[index++]);
-            SpatialBlend = float.Parse(text[index++]);
-            MaxDistance = float.Parse(text[index++]);
+            ResourceName = columnStrings[index++];
+            Priority = int.Parse(columnStrings[index++]);
+            Loop = bool.Parse(columnStrings[index++]);
+            Volume = float.Parse(columnStrings[index++]);
+            SpatialBlend = float.Parse(columnStrings[index++]);
+            MaxDistance = float.Parse(columnStrings[index++]);
+
+            GeneratePropertyArray();
+            return true;
         }
 
-        private void AvoidJIT()
+        public override bool ParseDataRow(byte[] dataRowBytes, int startIndex, int length, object userData)
         {
-            new Dictionary<int, DRSound>();
+            using (MemoryStream memoryStream = new MemoryStream(dataRowBytes, startIndex, length, false))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
+                {
+                    m_Id = binaryReader.Read7BitEncodedInt32();
+                    ResourceName = binaryReader.ReadString();
+                    Priority = binaryReader.Read7BitEncodedInt32();
+                    Loop = binaryReader.ReadBoolean();
+                    Volume = binaryReader.ReadSingle();
+                    SpatialBlend = binaryReader.ReadSingle();
+                    MaxDistance = binaryReader.ReadSingle();
+                }
+            }
+
+            GeneratePropertyArray();
+            return true;
+        }
+
+        private void GeneratePropertyArray()
+        {
+
         }
     }
 }

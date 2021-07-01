@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -22,13 +22,24 @@ namespace UnityGameFramework.Runtime
         private IEventManager m_EventManager = null;
 
         /// <summary>
-        /// 获取事件数量。
+        /// 获取事件处理函数的数量。
         /// </summary>
-        public int Count
+        public int EventHandlerCount
         {
             get
             {
-                return m_EventManager.Count;
+                return m_EventManager.EventHandlerCount;
+            }
+        }
+
+        /// <summary>
+        /// 获取事件数量。
+        /// </summary>
+        public int EventCount
+        {
+            get
+            {
+                return m_EventManager.EventCount;
             }
         }
 
@@ -49,15 +60,24 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-
         }
 
         /// <summary>
-        /// 检查订阅事件处理回调函数。
+        /// 获取事件处理函数的数量。
         /// </summary>
         /// <param name="id">事件类型编号。</param>
-        /// <param name="handler">要检查的事件处理回调函数。</param>
-        /// <returns>是否存在事件处理回调函数。</returns>
+        /// <returns>事件处理函数的数量。</returns>
+        public int Count(int id)
+        {
+            return m_EventManager.Count(id);
+        }
+
+        /// <summary>
+        /// 检查是否存在事件处理函数。
+        /// </summary>
+        /// <param name="id">事件类型编号。</param>
+        /// <param name="handler">要检查的事件处理函数。</param>
+        /// <returns>是否存在事件处理函数。</returns>
         public bool Check(int id, EventHandler<GameEventArgs> handler)
         {
             return m_EventManager.Check(id, handler);

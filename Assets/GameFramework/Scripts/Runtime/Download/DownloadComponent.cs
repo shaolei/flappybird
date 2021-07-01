@@ -1,12 +1,13 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
 using GameFramework.Download;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
@@ -19,6 +20,7 @@ namespace UnityGameFramework.Runtime
     public sealed class DownloadComponent : GameFrameworkComponent
     {
         private const int DefaultPriority = 0;
+        private const int OneMegaBytes = 1024 * 1024;
 
         private IDownloadManager m_DownloadManager = null;
         private EventComponent m_EventComponent = null;
@@ -39,7 +41,22 @@ namespace UnityGameFramework.Runtime
         private float m_Timeout = 30f;
 
         [SerializeField]
-        private int m_FlushSize = 1024 * 1024;
+        private int m_FlushSize = OneMegaBytes;
+
+        /// <summary>
+        /// 获取或设置下载是否被暂停。
+        /// </summary>
+        public bool Paused
+        {
+            get
+            {
+                return m_DownloadManager.Paused;
+            }
+            set
+            {
+                m_DownloadManager.Paused = value;
+            }
+        }
 
         /// <summary>
         /// 获取下载代理总数量。
@@ -159,7 +176,7 @@ namespace UnityGameFramework.Runtime
 
             if (m_InstanceRoot == null)
             {
-                m_InstanceRoot = (new GameObject("Download Agent Instances")).transform;
+                m_InstanceRoot = new GameObject("Download Agent Instances").transform;
                 m_InstanceRoot.SetParent(gameObject.transform);
                 m_InstanceRoot.localScale = Vector3.one;
             }
@@ -171,6 +188,54 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 根据下载任务的序列编号获取下载任务的信息。
+        /// </summary>
+        /// <param name="serialId">要获取信息的下载任务的序列编号。</param>
+        /// <returns>下载任务的信息。</returns>
+        public TaskInfo GetDownloadInfo(int serialId)
+        {
+            return m_DownloadManager.GetDownloadInfo(serialId);
+        }
+
+        /// <summary>
+        /// 根据下载任务的标签获取下载任务的信息。
+        /// </summary>
+        /// <param name="tag">要获取信息的下载任务的标签。</param>
+        /// <returns>下载任务的信息。</returns>
+        public TaskInfo[] GetDownloadInfos(string tag)
+        {
+            return m_DownloadManager.GetDownloadInfos(tag);
+        }
+
+        /// <summary>
+        /// 根据下载任务的标签获取下载任务的信息。
+        /// </summary>
+        /// <param name="tag">要获取信息的下载任务的标签。</param>
+        /// <param name="results">下载任务的信息。</param>
+        public void GetDownloadInfos(string tag, List<TaskInfo> results)
+        {
+            m_DownloadManager.GetDownloadInfos(tag, results);
+        }
+
+        /// <summary>
+        /// 获取所有下载任务的信息。
+        /// </summary>
+        /// <returns>所有下载任务的信息。</returns>
+        public TaskInfo[] GetAllDownloadInfos()
+        {
+            return m_DownloadManager.GetAllDownloadInfos();
+        }
+
+        /// <summary>
+        /// 获取所有下载任务的信息。
+        /// </summary>
+        /// <param name="results">所有下载任务的信息。</param>
+        public void GetAllDownloadInfos(List<TaskInfo> results)
+        {
+            m_DownloadManager.GetAllDownloadInfos(results);
+        }
+
+        /// <summary>
         /// 增加下载任务。
         /// </summary>
         /// <param name="downloadPath">下载后存放路径。</param>
@@ -178,7 +243,19 @@ namespace UnityGameFramework.Runtime
         /// <returns>新增下载任务的序列编号。</returns>
         public int AddDownload(string downloadPath, string downloadUri)
         {
-            return AddDownload(downloadPath, downloadUri, DefaultPriority, null);
+            return AddDownload(downloadPath, downloadUri, null, DefaultPriority, null);
+        }
+
+        /// <summary>
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="tag">下载任务的标签。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        public int AddDownload(string downloadPath, string downloadUri, string tag)
+        {
+            return AddDownload(downloadPath, downloadUri, tag, DefaultPriority, null);
         }
 
         /// <summary>
@@ -190,7 +267,7 @@ namespace UnityGameFramework.Runtime
         /// <returns>新增下载任务的序列编号。</returns>
         public int AddDownload(string downloadPath, string downloadUri, int priority)
         {
-            return AddDownload(downloadPath, downloadUri, priority, null);
+            return AddDownload(downloadPath, downloadUri, null, priority, null);
         }
 
         /// <summary>
@@ -202,7 +279,33 @@ namespace UnityGameFramework.Runtime
         /// <returns>新增下载任务的序列编号。</returns>
         public int AddDownload(string downloadPath, string downloadUri, object userData)
         {
-            return AddDownload(downloadPath, downloadUri, DefaultPriority, userData);
+            return AddDownload(downloadPath, downloadUri, null, DefaultPriority, userData);
+        }
+
+        /// <summary>
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="tag">下载任务的标签。</param>
+        /// <param name="priority">下载任务的优先级。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        public int AddDownload(string downloadPath, string downloadUri, string tag, int priority)
+        {
+            return AddDownload(downloadPath, downloadUri, tag, priority, null);
+        }
+
+        /// <summary>
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="tag">下载任务的标签。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        public int AddDownload(string downloadPath, string downloadUri, string tag, object userData)
+        {
+            return AddDownload(downloadPath, downloadUri, tag, DefaultPriority, userData);
         }
 
         /// <summary>
@@ -215,24 +318,50 @@ namespace UnityGameFramework.Runtime
         /// <returns>新增下载任务的序列编号。</returns>
         public int AddDownload(string downloadPath, string downloadUri, int priority, object userData)
         {
-            return m_DownloadManager.AddDownload(downloadPath, downloadUri, priority, userData);
+            return AddDownload(downloadPath, downloadUri, null, priority, userData);
         }
 
         /// <summary>
-        /// 移除下载任务。
+        /// 增加下载任务。
+        /// </summary>
+        /// <param name="downloadPath">下载后存放路径。</param>
+        /// <param name="downloadUri">原始下载地址。</param>
+        /// <param name="tag">下载任务的标签。</param>
+        /// <param name="priority">下载任务的优先级。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        /// <returns>新增下载任务的序列编号。</returns>
+        public int AddDownload(string downloadPath, string downloadUri, string tag, int priority, object userData)
+        {
+            return m_DownloadManager.AddDownload(downloadPath, downloadUri, tag, priority, userData);
+        }
+
+        /// <summary>
+        /// 根据下载任务的序列编号移除下载任务。
         /// </summary>
         /// <param name="serialId">要移除下载任务的序列编号。</param>
-        public void RemoveDownload(int serialId)
+        /// <returns>是否移除下载任务成功。</returns>
+        public bool RemoveDownload(int serialId)
         {
-            m_DownloadManager.RemoveDownload(serialId);
+            return m_DownloadManager.RemoveDownload(serialId);
+        }
+
+        /// <summary>
+        /// 根据下载任务的标签移除下载任务。
+        /// </summary>
+        /// <param name="tag">要移除下载任务的标签。</param>
+        /// <returns>移除下载任务的数量。</returns>
+        public int RemoveDownloads(string tag)
+        {
+            return m_DownloadManager.RemoveDownloads(tag);
         }
 
         /// <summary>
         /// 移除所有下载任务。
         /// </summary>
-        public void RemoveAllDownload()
+        /// <returns>移除下载任务的数量。</returns>
+        public int RemoveAllDownloads()
         {
-            m_DownloadManager.RemoveAllDownload();
+            return m_DownloadManager.RemoveAllDownloads();
         }
 
         /// <summary>
@@ -248,7 +377,7 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-            downloadAgentHelper.name = string.Format("Download Agent Helper - {0}", index.ToString());
+            downloadAgentHelper.name = Utility.Text.Format("Download Agent Helper - {0}", index.ToString());
             Transform transform = downloadAgentHelper.transform;
             transform.SetParent(m_InstanceRoot);
             transform.localScale = Vector3.one;
@@ -258,23 +387,23 @@ namespace UnityGameFramework.Runtime
 
         private void OnDownloadStart(object sender, GameFramework.Download.DownloadStartEventArgs e)
         {
-            m_EventComponent.Fire(this, ReferencePool.Acquire<DownloadStartEventArgs>().Fill(e));
+            m_EventComponent.Fire(this, DownloadStartEventArgs.Create(e));
         }
 
         private void OnDownloadUpdate(object sender, GameFramework.Download.DownloadUpdateEventArgs e)
         {
-            m_EventComponent.Fire(this, ReferencePool.Acquire<DownloadUpdateEventArgs>().Fill(e));
+            m_EventComponent.Fire(this, DownloadUpdateEventArgs.Create(e));
         }
 
         private void OnDownloadSuccess(object sender, GameFramework.Download.DownloadSuccessEventArgs e)
         {
-            m_EventComponent.Fire(this, ReferencePool.Acquire<DownloadSuccessEventArgs>().Fill(e));
+            m_EventComponent.Fire(this, DownloadSuccessEventArgs.Create(e));
         }
 
         private void OnDownloadFailure(object sender, GameFramework.Download.DownloadFailureEventArgs e)
         {
             Log.Warning("Download failure, download serial id '{0}', download path '{1}', download uri '{2}', error message '{3}'.", e.SerialId.ToString(), e.DownloadPath, e.DownloadUri, e.ErrorMessage);
-            m_EventComponent.Fire(this, ReferencePool.Acquire<DownloadFailureEventArgs>().Fill(e));
+            m_EventComponent.Fire(this, DownloadFailureEventArgs.Create(e));
         }
     }
 }

@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEngine;
@@ -10,7 +10,7 @@ using UnityEngine.SceneManagement;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private sealed class SceneInformationWindow : ScrollableDebuggerWindowBase
         {
@@ -19,17 +19,23 @@ namespace UnityGameFramework.Runtime
                 GUILayout.Label("<b>Scene Information</b>");
                 GUILayout.BeginVertical("box");
                 {
-                    DrawItem("Scene Count:", SceneManager.sceneCount.ToString());
-                    DrawItem("Scene Count In Build Settings:", SceneManager.sceneCountInBuildSettings.ToString());
+                    DrawItem("Scene Count", SceneManager.sceneCount.ToString());
+                    DrawItem("Scene Count In Build Settings", SceneManager.sceneCountInBuildSettings.ToString());
 
                     Scene activeScene = SceneManager.GetActiveScene();
-                    DrawItem("Active Scene Name:", activeScene.name);
-                    DrawItem("Active Scene Path:", activeScene.path);
-                    DrawItem("Active Scene Build Index:", activeScene.buildIndex.ToString());
-                    DrawItem("Active Scene Is Dirty:", activeScene.isDirty.ToString());
-                    DrawItem("Active Scene Is Loaded:", activeScene.isLoaded.ToString());
-                    DrawItem("Active Scene Is Valid:", activeScene.IsValid().ToString());
-                    DrawItem("Active Scene Root Count:", activeScene.rootCount.ToString());
+#if UNITY_2018_3_OR_NEWER
+                    DrawItem("Active Scene Handle", activeScene.handle.ToString());
+#endif
+                    DrawItem("Active Scene Name", activeScene.name);
+                    DrawItem("Active Scene Path", activeScene.path);
+                    DrawItem("Active Scene Build Index", activeScene.buildIndex.ToString());
+                    DrawItem("Active Scene Is Dirty", activeScene.isDirty.ToString());
+                    DrawItem("Active Scene Is Loaded", activeScene.isLoaded.ToString());
+                    DrawItem("Active Scene Is Valid", activeScene.IsValid().ToString());
+                    DrawItem("Active Scene Root Count", activeScene.rootCount.ToString());
+#if UNITY_2019_1_OR_NEWER
+                    DrawItem("Active Scene Is Sub Scene", activeScene.isSubScene.ToString());
+#endif
                 }
                 GUILayout.EndVertical();
             }

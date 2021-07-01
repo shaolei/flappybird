@@ -1,13 +1,16 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
 using GameFramework.ObjectPool;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using UnityGameFramework.Runtime;
@@ -17,7 +20,7 @@ namespace UnityGameFramework.Editor
     [CustomEditor(typeof(ObjectPoolComponent))]
     internal sealed class ObjectPoolComponentInspector : GameFrameworkInspector
     {
-        private HashSet<string> m_OpenedItems = new HashSet<string>();
+        private readonly HashSet<string> m_OpenedItems = new HashSet<string>();
 
         public override void OnInspectorGUI()
         {
@@ -31,7 +34,7 @@ namespace UnityGameFramework.Editor
 
             ObjectPoolComponent t = (ObjectPoolComponent)target;
 
-            if (PrefabUtility.GetPrefabType(t.gameObject) != PrefabType.Prefab)
+            if (IsPrefabInHierarchy(t.gameObject))
             {
                 EditorGUILayout.LabelField("Object Pool Count", t.Count.ToString());
 
@@ -47,23 +50,21 @@ namespace UnityGameFramework.Editor
 
         private void OnEnable()
         {
-
         }
 
         private void DrawObjectPool(ObjectPoolBase objectPool)
         {
-            string fullName = Utility.Text.GetFullName(objectPool.ObjectType, objectPool.Name);
-            bool lastState = m_OpenedItems.Contains(fullName);
-            bool currentState = EditorGUILayout.Foldout(lastState, string.IsNullOrEmpty(objectPool.Name) ? "<Unnamed>" : objectPool.Name);
+            bool lastState = m_OpenedItems.Contains(objectPool.FullName);
+            bool currentState = EditorGUILayout.Foldout(lastState, objectPool.FullName);
             if (currentState != lastState)
             {
                 if (currentState)
                 {
-                    m_OpenedItems.Add(fullName);
+                    m_OpenedItems.Add(objectPool.FullName);
                 }
                 else
                 {
-                    m_OpenedItems.Remove(fullName);
+                    m_OpenedItems.Remove(objectPool.FullName);
                 }
             }
 
@@ -71,6 +72,7 @@ namespace UnityGameFramework.Editor
             {
                 EditorGUILayout.BeginVertical("box");
                 {
+                    EditorGUILayout.LabelField("Name", objectPool.Name);
                     EditorGUILayout.LabelField("Type", objectPool.ObjectType.FullName);
                     EditorGUILayout.LabelField("Auto Release Interval", objectPool.AutoReleaseInterval.ToString());
                     EditorGUILayout.LabelField("Capacity", objectPool.Capacity.ToString());
@@ -81,9 +83,45 @@ namespace UnityGameFramework.Editor
                     ObjectInfo[] objectInfos = objectPool.GetAllObjectInfos();
                     if (objectInfos.Length > 0)
                     {
+                        EditorGUILayout.LabelField("Name", objectPool.AllowMultiSpawn ? "Locked\tCount\tFlag\tPriority\tLast Use Time" : "Locked\tIn Use\tFlag\tPriority\tLast Use Time");
                         foreach (ObjectInfo objectInfo in objectInfos)
                         {
-                            EditorGUILayout.LabelField(objectInfo.Name, string.Format("{0}, {1}, {2}, {3}", objectInfo.Locked.ToString(), objectPool.AllowMultiSpawn ? objectInfo.SpawnCount.ToString() : objectInfo.IsInUse.ToString(), objectInfo.Priority.ToString(), objectInfo.LastUseTime.ToString("yyyy-MM-dd HH:mm:ss")));
+                            EditorGUILayout.LabelField(string.IsNullOrEmpty(objectInfo.Name) ? "<None>" : objectInfo.Name, Utility.Text.Format("{0}\t{1}\t{2}\t{3}\t{4}", objectInfo.Locked.ToString(), objectPool.AllowMultiSpawn ? objectInfo.SpawnCount.ToString() : objectInfo.IsInUse.ToString(), objectInfo.CustomCanReleaseFlag.ToString(), objectInfo.Priority.ToString(), objectInfo.LastUseTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")));
+                        }
+
+                        if (GUILayout.Button("Release"))
+                        {
+                            objectPool.Release();
+                        }
+
+                        if (GUILayout.Button("Release All Unused"))
+                        {
+                            objectPool.ReleaseAllUnused();
+                        }
+
+                        if (GUILayout.Button("Export CSV Data"))
+                        {
+                            string exportFileName = EditorUtility.SaveFilePanel("Export CSV Data", string.Empty, Utility.Text.Format("Object Pool Data - {0}.csv", objectPool.Name), string.Empty);
+                            if (!string.IsNullOrEmpty(exportFileName))
+                            {
+                                try
+                                {
+                                    int index = 0;
+                                    string[] data = new string[objectInfos.Length + 1];
+                                    data[index++] = Utility.Text.Format("Name,Locked,{0},Custom Can Release Flag,Priority,Last Use Time", objectPool.AllowMultiSpawn ? "Count" : "In Use");
+                                    foreach (ObjectInfo objectInfo in objectInfos)
+                                    {
+                                        data[index++] = Utility.Text.Format("{0},{1},{2},{3},{4},{5}", objectInfo.Name, objectInfo.Locked.ToString(), objectPool.AllowMultiSpawn ? objectInfo.SpawnCount.ToString() : objectInfo.IsInUse.ToString(), objectInfo.CustomCanReleaseFlag.ToString(), objectInfo.Priority.ToString(), objectInfo.LastUseTime.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss"));
+                                    }
+
+                                    File.WriteAllLines(exportFileName, data, Encoding.UTF8);
+                                    Debug.Log(Utility.Text.Format("Export object pool CSV data to '{0}' success.", exportFileName));
+                                }
+                                catch (Exception exception)
+                                {
+                                    Debug.LogError(Utility.Text.Format("Export object pool CSV data to '{0}' failure, exception is '{1}'.", exportFileName, exception.ToString()));
+                                }
+                            }
                         }
                     }
                     else

@@ -1,22 +1,32 @@
-﻿using GameFramework;
+﻿//------------------------------------------------------------
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
+//------------------------------------------------------------
+
 using GameFramework.DataTable;
 using GameFramework.Event;
-using GameFramework.Procedure;
 using UnityGameFramework.Runtime;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 
 namespace FlappyBird
 {
-
-    /// <summary>
-    /// 切换场景流程
-    /// </summary>
-    public partial class ProcedureChangeScene : ProcedureBase
+    public class ProcedureChangeScene : ProcedureBase
     {
+        private const int MenuSceneId = 1;
 
+        private bool m_ChangeToMenu = false;
         private bool m_IsChangeSceneComplete = false;
         private int m_BackgroundMusicId = 0;
-        private int gotoSceneId = 0;
+
+        public override bool UseNativeDialog
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
@@ -47,18 +57,18 @@ namespace FlappyBird
             // 还原游戏速度
             GameEntry.Base.ResetNormalGameSpeed();
 
-            //读取流程状态机中的数据
-            gotoSceneId = procedureOwner.GetData<VarInt>(Constant.ProcedureData.NextSceneId).Value;
+            int sceneId = procedureOwner.GetData<VarInt32>("NextSceneId");
+            m_ChangeToMenu = sceneId == MenuSceneId;
             IDataTable<DRScene> dtScene = GameEntry.DataTable.GetDataTable<DRScene>();
-            DRScene drScene = dtScene.GetDataRow(gotoSceneId);
+            DRScene drScene = dtScene.GetDataRow(sceneId);
             if (drScene == null)
             {
-                Log.Warning("Can not load scene '{0}' from data table.", gotoSceneId.ToString());
+                Log.Warning("Can not load scene '{0}' from data table.", sceneId.ToString());
                 return;
             }
 
-            GameEntry.Scene.LoadScene(AssetUtility.GetSceneAsset(drScene.AssetName), this);
-            m_BackgroundMusicId = drScene.BackgroundMusicId;
+            GameEntry.Scene.LoadScene(AssetUtility.GetSceneAsset(drScene.AssetName), Constant.AssetPriority.SceneAsset, this);
+            m_BackgroundMusicId = drScene.BackgroundId;
         }
 
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
@@ -80,19 +90,13 @@ namespace FlappyBird
                 return;
             }
 
-            //TODO：在这里根据切换到的场景编号进行对应的流程切换
-            switch (gotoSceneId)
+            if (m_ChangeToMenu)
             {
-                case 1:
-                    ChangeState<ProcedureMenu>(procedureOwner);
-                    break;
- 
-                case 2:
-                    ChangeState<ProcedureMain>(procedureOwner);
-                    break;
-                    
-                default:
-                    break;
+                ChangeState<ProcedureMenu>(procedureOwner);
+            }
+            else
+            {
+                ChangeState<ProcedureMain>(procedureOwner);
             }
         }
 

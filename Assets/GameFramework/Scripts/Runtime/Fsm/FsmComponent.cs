@@ -1,13 +1,14 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
 using GameFramework.Fsm;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
@@ -20,6 +21,17 @@ namespace UnityGameFramework.Runtime
     public sealed class FsmComponent : GameFrameworkComponent
     {
         private IFsmManager m_FsmManager = null;
+
+        /// <summary>
+        /// 获取有限状态机数量。
+        /// </summary>
+        public int Count
+        {
+            get
+            {
+                return m_FsmManager.Count;
+            }
+        }
 
         /// <summary>
         /// 游戏框架组件初始化。
@@ -38,18 +50,6 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-
-        }
-
-        /// <summary>
-        /// 获取有限状态机数量。
-        /// </summary>
-        public int Count
-        {
-            get
-            {
-                return m_FsmManager.Count;
-            }
         }
 
         /// <summary>
@@ -145,6 +145,15 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 获取所有有限状态机。
+        /// </summary>
+        /// <param name="results">所有有限状态机。</param>
+        public void GetAllFsms(List<FsmBase> results)
+        {
+            m_FsmManager.GetAllFsms(results);
+        }
+
+        /// <summary>
         /// 创建有限状态机。
         /// </summary>
         /// <typeparam name="T">有限状态机持有者类型。</typeparam>
@@ -165,6 +174,31 @@ namespace UnityGameFramework.Runtime
         /// <param name="states">有限状态机状态集合。</param>
         /// <returns>要创建的有限状态机。</returns>
         public IFsm<T> CreateFsm<T>(string name, T owner, params FsmState<T>[] states) where T : class
+        {
+            return m_FsmManager.CreateFsm(name, owner, states);
+        }
+
+        /// <summary>
+        /// 创建有限状态机。
+        /// </summary>
+        /// <typeparam name="T">有限状态机持有者类型。</typeparam>
+        /// <param name="owner">有限状态机持有者。</param>
+        /// <param name="states">有限状态机状态集合。</param>
+        /// <returns>要创建的有限状态机。</returns>
+        public IFsm<T> CreateFsm<T>(T owner, List<FsmState<T>> states) where T : class
+        {
+            return m_FsmManager.CreateFsm(owner, states);
+        }
+
+        /// <summary>
+        /// 创建有限状态机。
+        /// </summary>
+        /// <typeparam name="T">有限状态机持有者类型。</typeparam>
+        /// <param name="name">有限状态机名称。</param>
+        /// <param name="owner">有限状态机持有者。</param>
+        /// <param name="states">有限状态机状态集合。</param>
+        /// <returns>要创建的有限状态机。</returns>
+        public IFsm<T> CreateFsm<T>(string name, T owner, List<FsmState<T>> states) where T : class
         {
             return m_FsmManager.CreateFsm(name, owner, states);
         }

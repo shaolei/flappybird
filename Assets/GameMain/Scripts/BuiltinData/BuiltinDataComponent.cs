@@ -1,6 +1,4 @@
 ﻿using GameFramework;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityGameFramework.Runtime;
 
@@ -11,36 +9,16 @@ namespace FlappyBird
     /// </summary>
     public class BuiltinDataComponent : GameFrameworkComponent
     {
-        /// <summary>
-        /// 画质模式配置
-        /// </summary>
-        [SerializeField]
-        private DeviceModelConfig m_DeviceModelConfig = null;
-
-        /// <summary>
-        /// 项目构建信息文本
-        /// </summary>
         [SerializeField]
         private TextAsset m_BuildInfoTextAsset = null;
 
-        /// <summary>
-        /// 默认字典
-        /// </summary>
         [SerializeField]
         private TextAsset m_DefaultDictionaryTextAsset = null;
 
-        /// <summary>
-        /// 项目构建信息
-        /// </summary>
-        private BuildInfo m_BuildInfo = null;
+        [SerializeField]
+        private UpdateResourceForm m_UpdateResourceFormTemplate = null;
 
-        public DeviceModelConfig DeviceModelConfig
-        {
-            get
-            {
-                return m_DeviceModelConfig;
-            }
-        }
+        private BuildInfo m_BuildInfo = null;
 
         public BuildInfo BuildInfo
         {
@@ -50,9 +28,14 @@ namespace FlappyBird
             }
         }
 
-        /// <summary>
-        /// 初始化项目构建信息
-        /// </summary>
+        public UpdateResourceForm UpdateResourceFormTemplate
+        {
+            get
+            {
+                return m_UpdateResourceFormTemplate;
+            }
+        }
+
         public void InitBuildInfo()
         {
             if (m_BuildInfoTextAsset == null || string.IsNullOrEmpty(m_BuildInfoTextAsset.text))
@@ -67,14 +50,8 @@ namespace FlappyBird
                 Log.Warning("Parse build info failure.");
                 return;
             }
-
-            GameEntry.Base.GameVersion = m_BuildInfo.GameVersion;
-            GameEntry.Base.InternalApplicationVersion = m_BuildInfo.InternalVersion;
         }
 
-        /// <summary>
-        /// 初始化默认字典
-        /// </summary>
         public void InitDefaultDictionary()
         {
             if (m_DefaultDictionaryTextAsset == null || string.IsNullOrEmpty(m_DefaultDictionaryTextAsset.text))
@@ -83,7 +60,7 @@ namespace FlappyBird
                 return;
             }
 
-            if (!GameEntry.Localization.ParseDictionary(m_DefaultDictionaryTextAsset.text))
+            if (!GameEntry.Localization.ParseData(m_DefaultDictionaryTextAsset.text))
             {
                 Log.Warning("Parse default dictionary failure.");
                 return;

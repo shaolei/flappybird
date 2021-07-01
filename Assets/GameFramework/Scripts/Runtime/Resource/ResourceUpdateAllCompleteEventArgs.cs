@@ -1,10 +1,11 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
+using GameFramework;
 using GameFramework.Event;
 
 namespace UnityGameFramework.Runtime
@@ -20,6 +21,13 @@ namespace UnityGameFramework.Runtime
         public static readonly int EventId = typeof(ResourceUpdateAllCompleteEventArgs).GetHashCode();
 
         /// <summary>
+        /// 初始化资源更新全部完成事件的新实例。
+        /// </summary>
+        public ResourceUpdateAllCompleteEventArgs()
+        {
+        }
+
+        /// <summary>
         /// 获取资源更新全部完成事件编号。
         /// </summary>
         public override int Id
@@ -31,21 +39,20 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 创建资源更新全部完成事件。
+        /// </summary>
+        /// <param name="e">内部事件。</param>
+        /// <returns>创建的资源更新全部完成事件。</returns>
+        public static ResourceUpdateAllCompleteEventArgs Create(GameFramework.Resource.ResourceUpdateAllCompleteEventArgs e)
+        {
+            return ReferencePool.Acquire<ResourceUpdateAllCompleteEventArgs>();
+        }
+
+        /// <summary>
         /// 清理资源更新全部完成事件。
         /// </summary>
         public override void Clear()
         {
-
-        }
-
-        /// <summary>
-        /// 填充资源更新全部完成事件。
-        /// </summary>
-        /// <param name="e">内部事件。</param>
-        /// <returns>资源更新全部完成事件。</returns>
-        public ResourceUpdateAllCompleteEventArgs Fill(GameFramework.Resource.ResourceUpdateAllCompleteEventArgs e)
-        {
-            return this;
         }
     }
 }

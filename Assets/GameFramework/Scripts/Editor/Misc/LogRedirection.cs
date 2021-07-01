@@ -1,11 +1,13 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
-using GameFramework;
+#if !UNITY_2019_1_OR_NEWER
+
+using System.IO;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -47,16 +49,14 @@ namespace UnityGameFramework.Editor
                 return false;
             }
 
-            // 跳过第一次匹配的堆栈
             match = match.NextMatch();
             if (!match.Success)
             {
                 return false;
             }
 
-            if (match.Groups[1].Value.Contains("Log.cs"))
+            if (match.Groups[1].Value.Contains("GameFrameworkLog.cs"))
             {
-                // 直接使用 GameFramework.dll 源码而非 dll 的工程会多一次匹配的堆栈
                 match = match.NextMatch();
                 if (!match.Success)
                 {
@@ -64,7 +64,16 @@ namespace UnityGameFramework.Editor
                 }
             }
 
-            InternalEditorUtility.OpenFileAtLineExternal(Utility.Path.GetCombinePath(Application.dataPath, match.Groups[1].Value.Substring(7)), int.Parse(match.Groups[2].Value));
+            if (match.Groups[1].Value.Contains("Log.cs"))
+            {
+                match = match.NextMatch();
+                if (!match.Success)
+                {
+                    return false;
+                }
+            }
+
+            InternalEditorUtility.OpenFileAtLineExternal(Path.Combine(Application.dataPath, match.Groups[1].Value.Substring(7)), int.Parse(match.Groups[2].Value));
             return true;
         }
 
@@ -109,3 +118,5 @@ namespace UnityGameFramework.Editor
         }
     }
 }
+
+#endif

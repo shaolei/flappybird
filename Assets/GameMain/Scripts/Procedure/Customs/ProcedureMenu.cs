@@ -1,5 +1,4 @@
 using UnityGameFramework.Runtime;
-using GameFramework.Procedure;
 using ProcedureOwner = GameFramework.Fsm.IFsm<GameFramework.Procedure.IProcedureManager>;
 using GameFramework.Event;
 
@@ -10,12 +9,22 @@ namespace FlappyBird
     /// </summary>
     public class ProcedureMenu : ProcedureBase
     {
-        public bool IsStartGame { get; set; }
+        private bool IsStartGame = false;
 
         /// <summary>
         /// 菜单界面脚本
         /// </summary>
         private MenuForm m_MenuForm = null;
+
+        public override bool UseNativeDialog
+        {
+            get { return false; }
+        }
+        
+        public void StartGame()
+        {
+            IsStartGame = true;
+        }
 
         protected override void OnEnter(ProcedureOwner procedureOwner)
         {
@@ -37,7 +46,7 @@ namespace FlappyBird
             if (IsStartGame)
             {
                 //切换到主要场景
-                procedureOwner.SetData<VarInt>(Constant.ProcedureData.NextSceneId, GameEntry.Config.GetInt("Scene.Main"));
+                procedureOwner.SetData<VarInt32>("NextSceneId", GameEntry.Config.GetInt("Scene.Main"));
                 ChangeState<ProcedureChangeScene>(procedureOwner);
             }
         }
@@ -45,27 +54,26 @@ namespace FlappyBird
         protected override void OnLeave(ProcedureOwner procedureOwner, bool isShutdown)
         {
             base.OnLeave(procedureOwner, isShutdown);
- 
+
             if (m_MenuForm != null)
             {
                 m_MenuForm.Close(isShutdown);
                 m_MenuForm = null;
             }
- 
+
             //取消订阅UI打开成功事件
             GameEntry.Event.Unsubscribe(OpenUIFormSuccessEventArgs.EventId, OnOpenUIFormSuccess);
         }
- 
+
         private void OnOpenUIFormSuccess(object sender, GameEventArgs e)
         {
-            OpenUIFormSuccessEventArgs ne = (OpenUIFormSuccessEventArgs)e;
+            OpenUIFormSuccessEventArgs ne = (OpenUIFormSuccessEventArgs) e;
             if (ne.UserData != this)
             {
                 return;
             }
- 
-            m_MenuForm = (MenuForm)ne.UIForm.Logic;
+
+            m_MenuForm = (MenuForm) ne.UIForm.Logic;
         }
     }
 }
-

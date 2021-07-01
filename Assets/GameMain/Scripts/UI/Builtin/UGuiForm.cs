@@ -1,5 +1,6 @@
 ﻿using GameFramework;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityGameFramework.Runtime;
@@ -17,19 +18,14 @@ namespace FlappyBird
         private static Font s_MainFont = null;
         private Canvas m_CachedCanvas = null;
         private CanvasGroup m_CanvasGroup = null;
+        private List<Canvas> m_CachedCanvasContainer = new List<Canvas>();
 
-        /// <summary>
-        /// 原始深度
-        /// </summary>
         public int OriginalDepth
         {
             get;
             private set;
         }
 
-        /// <summary>
-        /// 深度
-        /// </summary>
         public int Depth
         {
             get
@@ -71,10 +67,6 @@ namespace FlappyBird
             }
 
             s_MainFont = mainFont;
-
-            GameObject go = new GameObject();
-            go.AddComponent<Text>().font = mainFont;
-            Destroy(go);
         }
 
 #if UNITY_2017_3_OR_NEWER
@@ -99,16 +91,24 @@ namespace FlappyBird
 
             gameObject.GetOrAddComponent<GraphicRaycaster>();
 
-            //TODO：在这里根据语言设置让界面显示本地化文本
-            //Text[] texts = GetComponentsInChildren<Text>(true);
-            //for (int i = 0; i < texts.Length; i++)
-            //{
-            //    texts[i].font = s_MainFont;
-            //    if (!string.IsNullOrEmpty(texts[i].text))
-            //    {
-            //        texts[i].text = GameEntry.Localization.GetString(texts[i].text);
-            //    }
-            //}
+            Text[] texts = GetComponentsInChildren<Text>(true);
+            for (int i = 0; i < texts.Length; i++)
+            {
+                texts[i].font = s_MainFont;
+                if (!string.IsNullOrEmpty(texts[i].text))
+                {
+                    texts[i].text = GameEntry.Localization.GetString(texts[i].text);
+                }
+            }
+        }
+
+#if UNITY_2017_3_OR_NEWER
+        protected override void OnRecycle()
+#else
+        protected internal override void OnRecycle()
+#endif
+        {
+            base.OnRecycle();
         }
 
 #if UNITY_2017_3_OR_NEWER
@@ -125,12 +125,12 @@ namespace FlappyBird
         }
 
 #if UNITY_2017_3_OR_NEWER
-        protected override void OnClose(object userData)
+        protected override void OnClose(bool isShutdown, object userData)
 #else
-        protected internal override void OnClose(object userData)
+        protected internal override void OnClose(bool isShutdown, object userData)
 #endif
         {
-            base.OnClose(userData);
+            base.OnClose(isShutdown, userData);
         }
 
 #if UNITY_2017_3_OR_NEWER
@@ -200,11 +200,13 @@ namespace FlappyBird
             int oldDepth = Depth;
             base.OnDepthChanged(uiGroupDepth, depthInUIGroup);
             int deltaDepth = UGuiGroupHelper.DepthFactor * uiGroupDepth + DepthFactor * depthInUIGroup - oldDepth + OriginalDepth;
-            Canvas[] canvases = GetComponentsInChildren<Canvas>(true);
-            for (int i = 0; i < canvases.Length; i++)
+            GetComponentsInChildren(true, m_CachedCanvasContainer);
+            for (int i = 0; i < m_CachedCanvasContainer.Count; i++)
             {
-                canvases[i].sortingOrder += deltaDepth;
+                m_CachedCanvasContainer[i].sortingOrder += deltaDepth;
             }
+
+            m_CachedCanvasContainer.Clear();
         }
 
         private IEnumerator CloseCo(float duration)

@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Download;
@@ -17,9 +17,19 @@ namespace UnityGameFramework.Runtime
     public abstract class DownloadAgentHelperBase : MonoBehaviour, IDownloadAgentHelper
     {
         /// <summary>
-        /// 下载代理辅助器更新事件。
+        /// 范围不适用错误码。
         /// </summary>
-        public abstract event EventHandler<DownloadAgentHelperUpdateEventArgs> DownloadAgentHelperUpdate;
+        protected const int RangeNotSatisfiableErrorCode = 416;
+
+        /// <summary>
+        /// 下载代理辅助器更新数据流事件。
+        /// </summary>
+        public abstract event EventHandler<DownloadAgentHelperUpdateBytesEventArgs> DownloadAgentHelperUpdateBytes;
+
+        /// <summary>
+        /// 下载代理辅助器更新数据大小事件。
+        /// </summary>
+        public abstract event EventHandler<DownloadAgentHelperUpdateLengthEventArgs> DownloadAgentHelperUpdateLength;
 
         /// <summary>
         /// 下载代理辅助器完成事件。
@@ -44,7 +54,7 @@ namespace UnityGameFramework.Runtime
         /// <param name="downloadUri">下载地址。</param>
         /// <param name="fromPosition">下载数据起始位置。</param>
         /// <param name="userData">用户自定义数据。</param>
-        public abstract void Download(string downloadUri, int fromPosition, object userData);
+        public abstract void Download(string downloadUri, long fromPosition, object userData);
 
         /// <summary>
         /// 通过下载代理辅助器下载指定地址的数据。
@@ -53,7 +63,7 @@ namespace UnityGameFramework.Runtime
         /// <param name="fromPosition">下载数据起始位置。</param>
         /// <param name="toPosition">下载数据结束位置。</param>
         /// <param name="userData">用户自定义数据。</param>
-        public abstract void Download(string downloadUri, int fromPosition, int toPosition, object userData);
+        public abstract void Download(string downloadUri, long fromPosition, long toPosition, object userData);
 
         /// <summary>
         /// 重置下载代理辅助器。

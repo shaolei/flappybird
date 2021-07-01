@@ -1,13 +1,17 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework.Resource;
+using System;
 using System.Collections;
 using UnityEngine;
+#if UNITY_5_4_OR_NEWER
+using UnityEngine.Networking;
+#endif
 using UnityEngine.SceneManagement;
 
 namespace UnityGameFramework.Runtime
@@ -18,13 +22,14 @@ namespace UnityGameFramework.Runtime
     public class DefaultResourceHelper : ResourceHelperBase
     {
         /// <summary>
-        /// 直接从指定文件路径读取数据流。
+        /// 直接从指定文件路径加载数据流。
         /// </summary>
         /// <param name="fileUri">文件路径。</param>
-        /// <param name="loadBytesCallback">读取数据流回调函数。</param>
-        public override void LoadBytes(string fileUri, LoadBytesCallback loadBytesCallback)
+        /// <param name="loadBytesCallbacks">加载数据流回调函数集。</param>
+        /// <param name="userData">用户自定义数据。</param>
+        public override void LoadBytes(string fileUri, LoadBytesCallbacks loadBytesCallbacks, object userData)
         {
-            StartCoroutine(LoadBytesCo(fileUri, loadBytesCallback));
+            StartCoroutine(LoadBytesCo(fileUri, loadBytesCallbacks, userData));
         }
 
         /// <summary>
@@ -76,8 +81,8 @@ namespace UnityGameFramework.Runtime
             }
 
             /* Unity 当前 Resources.UnloadAsset 在 iOS 设备上会导致一些诡异问题，先不用这部分
-            DummySceneObject dummySceneObject = objectToRelease as DummySceneObject;
-            if (dummySceneObject != null)
+            SceneAsset sceneAsset = objectToRelease as SceneAsset;
+            if (sceneAsset != null)
             {
                 return;
             }
@@ -101,21 +106,51 @@ namespace UnityGameFramework.Runtime
 
         private void Start()
         {
-
         }
 
-        private IEnumerator LoadBytesCo(string fileUri, LoadBytesCallback loadBytesCallback)
+        private IEnumerator LoadBytesCo(string fileUri, LoadBytesCallbacks loadBytesCallbacks, object userData)
         {
+            bool isError = false;
+            byte[] bytes = null;
+            string errorMessage = null;
+            DateTime startTime = DateTime.UtcNow;
+
+#if UNITY_5_4_OR_NEWER
+            UnityWebRequest unityWebRequest = UnityWebRequest.Get(fileUri);
+#if UNITY_2017_2_OR_NEWER
+            yield return unityWebRequest.SendWebRequest();
+#else
+            yield return unityWebRequest.Send();
+#endif
+
+#if UNITY_2020_2_OR_NEWER
+            isError = unityWebRequest.result != UnityWebRequest.Result.Success;
+#elif UNITY_2017_1_OR_NEWER
+            isError = unityWebRequest.isNetworkError || unityWebRequest.isHttpError;
+#else
+            isError = unityWebRequest.isError;
+#endif
+            bytes = unityWebRequest.downloadHandler.data;
+            errorMessage = isError ? unityWebRequest.error : null;
+            unityWebRequest.Dispose();
+#else
             WWW www = new WWW(fileUri);
             yield return www;
 
-            byte[] bytes = www.bytes;
-            string errorMessage = www.error;
+            isError = !string.IsNullOrEmpty(www.error);
+            bytes = www.bytes;
+            errorMessage = www.error;
             www.Dispose();
+#endif
 
-            if (loadBytesCallback != null)
+            if (!isError)
             {
-                loadBytesCallback(fileUri, bytes, errorMessage);
+                float elapseSeconds = (float)(DateTime.UtcNow - startTime).TotalSeconds;
+                loadBytesCallbacks.LoadBytesSuccessCallback(fileUri, bytes, elapseSeconds, userData);
+            }
+            else if (loadBytesCallbacks.LoadBytesFailureCallback != null)
+            {
+                loadBytesCallbacks.LoadBytesFailureCallback(fileUri, errorMessage, userData);
             }
         }
 

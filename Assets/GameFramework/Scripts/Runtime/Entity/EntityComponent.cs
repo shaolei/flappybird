@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -10,6 +10,7 @@ using GameFramework.Entity;
 using GameFramework.ObjectPool;
 using GameFramework.Resource;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
@@ -26,20 +27,13 @@ namespace UnityGameFramework.Runtime
         private IEntityManager m_EntityManager = null;
         private EventComponent m_EventComponent = null;
 
-        [SerializeField]
-        private bool m_EnableShowEntitySuccessEvent = true;
-
-        [SerializeField]
-        private bool m_EnableShowEntityFailureEvent = true;
+        private readonly List<IEntity> m_InternalEntityResults = new List<IEntity>();
 
         [SerializeField]
         private bool m_EnableShowEntityUpdateEvent = false;
 
         [SerializeField]
         private bool m_EnableShowEntityDependencyAssetEvent = false;
-
-        [SerializeField]
-        private bool m_EnableHideEntityCompleteEvent = true;
 
         [SerializeField]
         private Transform m_InstanceRoot = null;
@@ -97,8 +91,17 @@ namespace UnityGameFramework.Runtime
 
             m_EntityManager.ShowEntitySuccess += OnShowEntitySuccess;
             m_EntityManager.ShowEntityFailure += OnShowEntityFailure;
-            m_EntityManager.ShowEntityUpdate += OnShowEntityUpdate;
-            m_EntityManager.ShowEntityDependencyAsset += OnShowEntityDependencyAsset;
+
+            if (m_EnableShowEntityUpdateEvent)
+            {
+                m_EntityManager.ShowEntityUpdate += OnShowEntityUpdate;
+            }
+
+            if (m_EnableShowEntityDependencyAssetEvent)
+            {
+                m_EntityManager.ShowEntityDependencyAsset += OnShowEntityDependencyAsset;
+            }
+
             m_EntityManager.HideEntityComplete += OnHideEntityComplete;
         }
 
@@ -136,7 +139,7 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-            entityHelper.name = string.Format("Entity Helper");
+            entityHelper.name = "Entity Helper";
             Transform transform = entityHelper.transform;
             transform.SetParent(this.transform);
             transform.localScale = Vector3.one;
@@ -145,7 +148,7 @@ namespace UnityGameFramework.Runtime
 
             if (m_InstanceRoot == null)
             {
-                m_InstanceRoot = (new GameObject("Entity Instances")).transform;
+                m_InstanceRoot = new GameObject("Entity Instances").transform;
                 m_InstanceRoot.SetParent(gameObject.transform);
                 m_InstanceRoot.localScale = Vector3.one;
             }
@@ -190,6 +193,15 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 获取所有实体组。
+        /// </summary>
+        /// <param name="results">所有实体组。</param>
+        public void GetAllEntityGroups(List<IEntityGroup> results)
+        {
+            m_EntityManager.GetAllEntityGroups(results);
+        }
+
+        /// <summary>
         /// 增加实体组。
         /// </summary>
         /// <param name="entityGroupName">实体组名称。</param>
@@ -212,7 +224,7 @@ namespace UnityGameFramework.Runtime
                 return false;
             }
 
-            entityGroupHelper.name = string.Format("Entity Group - {0}", entityGroupName);
+            entityGroupHelper.name = Utility.Text.Format("Entity Group - {0}", entityGroupName);
             Transform transform = entityGroupHelper.transform;
             transform.SetParent(m_InstanceRoot);
             transform.localScale = Vector3.one;
@@ -278,6 +290,27 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 获取实体。
+        /// </summary>
+        /// <param name="entityAssetName">实体资源名称。</param>
+        /// <param name="results">要获取的实体。</param>
+        public void GetEntities(string entityAssetName, List<Entity> results)
+        {
+            if (results == null)
+            {
+                Log.Error("Results is invalid.");
+                return;
+            }
+
+            results.Clear();
+            m_EntityManager.GetEntities(entityAssetName, m_InternalEntityResults);
+            foreach (IEntity entity in m_InternalEntityResults)
+            {
+                results.Add((Entity)entity);
+            }
+        }
+
+        /// <summary>
         /// 获取所有已加载的实体。
         /// </summary>
         /// <returns>所有已加载的实体。</returns>
@@ -294,12 +327,41 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 获取所有已加载的实体。
+        /// </summary>
+        /// <param name="results">所有已加载的实体。</param>
+        public void GetAllLoadedEntities(List<Entity> results)
+        {
+            if (results == null)
+            {
+                Log.Error("Results is invalid.");
+                return;
+            }
+
+            results.Clear();
+            m_EntityManager.GetAllLoadedEntities(m_InternalEntityResults);
+            foreach (IEntity entity in m_InternalEntityResults)
+            {
+                results.Add((Entity)entity);
+            }
+        }
+
+        /// <summary>
         /// 获取所有正在加载实体的编号。
         /// </summary>
         /// <returns>所有正在加载实体的编号。</returns>
         public int[] GetAllLoadingEntityIds()
         {
             return m_EntityManager.GetAllLoadingEntityIds();
+        }
+
+        /// <summary>
+        /// 获取所有正在加载实体的编号。
+        /// </summary>
+        /// <param name="results">所有正在加载实体的编号。</param>
+        public void GetAllLoadingEntityIds(List<int> results)
+        {
+            m_EntityManager.GetAllLoadingEntityIds(results);
         }
 
         /// <summary>
@@ -429,7 +491,7 @@ namespace UnityGameFramework.Runtime
                 return;
             }
 
-            m_EntityManager.ShowEntity(entityId, entityAssetName, entityGroupName, priority, new ShowEntityInfo(entityLogicType, userData));
+            m_EntityManager.ShowEntity(entityId, entityAssetName, entityGroupName, priority, ShowEntityInfo.Create(entityLogicType, userData));
         }
 
         /// <summary>
@@ -516,10 +578,40 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
+        /// 获取子实体数量。
+        /// </summary>
+        /// <param name="parentEntityId">要获取子实体数量的父实体的实体编号。</param>
+        /// <returns>子实体数量。</returns>
+        public int GetChildEntityCount(int parentEntityId)
+        {
+            return m_EntityManager.GetChildEntityCount(parentEntityId);
+        }
+
+        /// <summary>
         /// 获取子实体。
         /// </summary>
         /// <param name="parentEntityId">要获取子实体的父实体的实体编号。</param>
-        /// <returns>子实体数组。</returns>
+        /// <returns>子实体。</returns>
+        public Entity GetChildEntity(int parentEntityId)
+        {
+            return (Entity)m_EntityManager.GetChildEntity(parentEntityId);
+        }
+
+        /// <summary>
+        /// 获取子实体。
+        /// </summary>
+        /// <param name="parentEntity">要获取子实体的父实体。</param>
+        /// <returns>子实体。</returns>
+        public Entity GetChildEntity(IEntity parentEntity)
+        {
+            return (Entity)m_EntityManager.GetChildEntity(parentEntity);
+        }
+
+        /// <summary>
+        /// 获取所有子实体。
+        /// </summary>
+        /// <param name="parentEntityId">要获取所有子实体的父实体的实体编号。</param>
+        /// <returns>所有子实体。</returns>
         public Entity[] GetChildEntities(int parentEntityId)
         {
             IEntity[] entities = m_EntityManager.GetChildEntities(parentEntityId);
@@ -533,10 +625,31 @@ namespace UnityGameFramework.Runtime
         }
 
         /// <summary>
-        /// 获取子实体。
+        /// 获取所有子实体。
         /// </summary>
-        /// <param name="parentEntity">要获取子实体的父实体。</param>
-        /// <returns>子实体数组。</returns>
+        /// <param name="parentEntityId">要获取所有子实体的父实体的实体编号。</param>
+        /// <param name="results">所有子实体。</param>
+        public void GetChildEntities(int parentEntityId, List<IEntity> results)
+        {
+            if (results == null)
+            {
+                Log.Error("Results is invalid.");
+                return;
+            }
+
+            results.Clear();
+            m_EntityManager.GetChildEntities(parentEntityId, m_InternalEntityResults);
+            foreach (IEntity entity in m_InternalEntityResults)
+            {
+                results.Add((Entity)entity);
+            }
+        }
+
+        /// <summary>
+        /// 获取所有子实体。
+        /// </summary>
+        /// <param name="parentEntity">要获取所有子实体的父实体。</param>
+        /// <returns>所有子实体。</returns>
         public Entity[] GetChildEntities(Entity parentEntity)
         {
             IEntity[] entities = m_EntityManager.GetChildEntities(parentEntity);
@@ -547,6 +660,27 @@ namespace UnityGameFramework.Runtime
             }
 
             return entityImpls;
+        }
+
+        /// <summary>
+        /// 获取所有子实体。
+        /// </summary>
+        /// <param name="parentEntity">要获取所有子实体的父实体。</param>
+        /// <param name="results">所有子实体。</param>
+        public void GetChildEntities(IEntity parentEntity, List<IEntity> results)
+        {
+            if (results == null)
+            {
+                Log.Error("Results is invalid.");
+                return;
+            }
+
+            results.Clear();
+            m_EntityManager.GetChildEntities(parentEntity, m_InternalEntityResults);
+            foreach (IEntity entity in m_InternalEntityResults)
+            {
+                results.Add((Entity)entity);
+            }
         }
 
         /// <summary>
@@ -858,7 +992,7 @@ namespace UnityGameFramework.Runtime
                 parentTransform = parentEntity.Logic.CachedTransform;
             }
 
-            m_EntityManager.AttachEntity(childEntity, parentEntity, new AttachEntityInfo(parentTransform, userData));
+            m_EntityManager.AttachEntity(childEntity, parentEntity, AttachEntityInfo.Create(parentTransform, userData));
         }
 
         /// <summary>
@@ -985,43 +1119,28 @@ namespace UnityGameFramework.Runtime
 
         private void OnShowEntitySuccess(object sender, GameFramework.Entity.ShowEntitySuccessEventArgs e)
         {
-            if (m_EnableShowEntitySuccessEvent)
-            {
-                m_EventComponent.Fire(this, ReferencePool.Acquire<ShowEntitySuccessEventArgs>().Fill(e));
-            }
+            m_EventComponent.Fire(this, ShowEntitySuccessEventArgs.Create(e));
         }
 
         private void OnShowEntityFailure(object sender, GameFramework.Entity.ShowEntityFailureEventArgs e)
         {
-            Log.Error("Show entity failure, entity id '{0}', asset name '{1}', entity group name '{2}', error message '{3}'.", e.EntityId.ToString(), e.EntityAssetName, e.EntityGroupName, e.ErrorMessage);
-            if (m_EnableShowEntityFailureEvent)
-            {
-                m_EventComponent.Fire(this, ReferencePool.Acquire<ShowEntityFailureEventArgs>().Fill(e));
-            }
+            Log.Warning("Show entity failure, entity id '{0}', asset name '{1}', entity group name '{2}', error message '{3}'.", e.EntityId.ToString(), e.EntityAssetName, e.EntityGroupName, e.ErrorMessage);
+            m_EventComponent.Fire(this, ShowEntityFailureEventArgs.Create(e));
         }
 
         private void OnShowEntityUpdate(object sender, GameFramework.Entity.ShowEntityUpdateEventArgs e)
         {
-            if (m_EnableShowEntityUpdateEvent)
-            {
-                m_EventComponent.Fire(this, ReferencePool.Acquire<ShowEntityUpdateEventArgs>().Fill(e));
-            }
+            m_EventComponent.Fire(this, ShowEntityUpdateEventArgs.Create(e));
         }
 
         private void OnShowEntityDependencyAsset(object sender, GameFramework.Entity.ShowEntityDependencyAssetEventArgs e)
         {
-            if (m_EnableShowEntityDependencyAssetEvent)
-            {
-                m_EventComponent.Fire(this, ReferencePool.Acquire<ShowEntityDependencyAssetEventArgs>().Fill(e));
-            }
+            m_EventComponent.Fire(this, ShowEntityDependencyAssetEventArgs.Create(e));
         }
 
         private void OnHideEntityComplete(object sender, GameFramework.Entity.HideEntityCompleteEventArgs e)
         {
-            if (m_EnableHideEntityCompleteEvent)
-            {
-                m_EventComponent.Fire(this, ReferencePool.Acquire<HideEntityCompleteEventArgs>().Fill(e));
-            }
+            m_EventComponent.Fire(this, HideEntityCompleteEventArgs.Create(e));
         }
     }
 }

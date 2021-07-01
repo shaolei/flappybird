@@ -1,11 +1,12 @@
-﻿using UnityGameFramework.Runtime;
+﻿using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace FlappyBird
 {
     /// <summary>
     /// 游戏入口。
     /// </summary>
-    public partial class GameEntry
+    public partial class GameEntry : MonoBehaviour
     {
         /// <summary>
         /// 获取游戏基础组件。
@@ -74,6 +75,15 @@ namespace FlappyBird
         /// 获取事件组件。
         /// </summary>
         public static EventComponent Event
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 获取文件系统组件。
+        /// </summary>
+        public static FileSystemComponent FileSystem
         {
             get;
             private set;
@@ -178,9 +188,6 @@ namespace FlappyBird
             private set;
         }
 
-        /// <summary>
-        /// 初始化游戏框架自带组件
-        /// </summary>
         private static void InitBuiltinComponents()
         {
             Base = UnityGameFramework.Runtime.GameEntry.GetComponent<BaseComponent>();
@@ -191,6 +198,7 @@ namespace FlappyBird
             Download = UnityGameFramework.Runtime.GameEntry.GetComponent<DownloadComponent>();
             Entity = UnityGameFramework.Runtime.GameEntry.GetComponent<EntityComponent>();
             Event = UnityGameFramework.Runtime.GameEntry.GetComponent<EventComponent>();
+            FileSystem = UnityGameFramework.Runtime.GameEntry.GetComponent<FileSystemComponent>();
             Fsm = UnityGameFramework.Runtime.GameEntry.GetComponent<FsmComponent>();
             Localization = UnityGameFramework.Runtime.GameEntry.GetComponent<LocalizationComponent>();
             Network = UnityGameFramework.Runtime.GameEntry.GetComponent<NetworkComponent>();

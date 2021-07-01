@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEngine;
@@ -14,6 +14,10 @@ namespace UnityGameFramework.Runtime
     /// </summary>
     public abstract class UIFormLogic : MonoBehaviour
     {
+        private bool m_Available = false;
+        private bool m_Visible = false;
+        private UIForm m_UIForm = null;
+        private Transform m_CachedTransform = null;
         private int m_OriginalLayer = 0;
 
         /// <summary>
@@ -23,7 +27,7 @@ namespace UnityGameFramework.Runtime
         {
             get
             {
-                return GetComponent<UIForm>();
+                return m_UIForm;
             }
         }
 
@@ -45,11 +49,38 @@ namespace UnityGameFramework.Runtime
         /// <summary>
         /// 获取界面是否可用。
         /// </summary>
-        public bool IsAvailable
+        public bool Available
         {
             get
             {
-                return gameObject.activeSelf;
+                return m_Available;
+            }
+        }
+
+        /// <summary>
+        /// 获取或设置界面是否可见。
+        /// </summary>
+        public bool Visible
+        {
+            get
+            {
+                return m_Available && m_Visible;
+            }
+            set
+            {
+                if (!m_Available)
+                {
+                    Log.Warning("UI form '{0}' is not available.", Name);
+                    return;
+                }
+
+                if (m_Visible == value)
+                {
+                    return;
+                }
+
+                m_Visible = value;
+                InternalSetVisible(value);
             }
         }
 
@@ -58,8 +89,10 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public Transform CachedTransform
         {
-            get;
-            private set;
+            get
+            {
+                return m_CachedTransform;
+            }
         }
 
         /// <summary>
@@ -68,12 +101,20 @@ namespace UnityGameFramework.Runtime
         /// <param name="userData">用户自定义数据。</param>
         protected internal virtual void OnInit(object userData)
         {
-            if (CachedTransform == null)
+            if (m_CachedTransform == null)
             {
-                CachedTransform = transform;
+                m_CachedTransform = transform;
             }
 
+            m_UIForm = GetComponent<UIForm>();
             m_OriginalLayer = gameObject.layer;
+        }
+
+        /// <summary>
+        /// 界面回收。
+        /// </summary>
+        protected internal virtual void OnRecycle()
+        {
         }
 
         /// <summary>
@@ -82,17 +123,20 @@ namespace UnityGameFramework.Runtime
         /// <param name="userData">用户自定义数据。</param>
         protected internal virtual void OnOpen(object userData)
         {
-            gameObject.SetActive(true);
+            m_Available = true;
+            Visible = true;
         }
 
         /// <summary>
         /// 界面关闭。
         /// </summary>
+        /// <param name="isShutdown">是否是关闭界面管理器时触发。</param>
         /// <param name="userData">用户自定义数据。</param>
-        protected internal virtual void OnClose(object userData)
+        protected internal virtual void OnClose(bool isShutdown, object userData)
         {
             gameObject.SetLayerRecursively(m_OriginalLayer);
-            gameObject.SetActive(false);
+            Visible = false;
+            m_Available = false;
         }
 
         /// <summary>
@@ -100,7 +144,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         protected internal virtual void OnPause()
         {
-            gameObject.SetActive(false);
+            Visible = false;
         }
 
         /// <summary>
@@ -108,7 +152,7 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         protected internal virtual void OnResume()
         {
-            gameObject.SetActive(true);
+            Visible = true;
         }
 
         /// <summary>
@@ -116,7 +160,6 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         protected internal virtual void OnCover()
         {
-
         }
 
         /// <summary>
@@ -124,7 +167,6 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         protected internal virtual void OnReveal()
         {
-
         }
 
         /// <summary>
@@ -133,7 +175,6 @@ namespace UnityGameFramework.Runtime
         /// <param name="userData">用户自定义数据。</param>
         protected internal virtual void OnRefocus(object userData)
         {
-
         }
 
         /// <summary>
@@ -143,7 +184,6 @@ namespace UnityGameFramework.Runtime
         /// <param name="realElapseSeconds">真实流逝时间，以秒为单位。</param>
         protected internal virtual void OnUpdate(float elapseSeconds, float realElapseSeconds)
         {
-
         }
 
         /// <summary>
@@ -153,7 +193,15 @@ namespace UnityGameFramework.Runtime
         /// <param name="depthInUIGroup">界面在界面组中的深度。</param>
         protected internal virtual void OnDepthChanged(int uiGroupDepth, int depthInUIGroup)
         {
+        }
 
+        /// <summary>
+        /// 设置界面的可见性。
+        /// </summary>
+        /// <param name="visible">界面的可见性。</param>
+        protected virtual void InternalSetVisible(bool visible)
+        {
+            gameObject.SetActive(visible);
         }
     }
 }

@@ -4,27 +4,16 @@ using UnityGameFramework.Runtime;
 
 namespace FlappyBird
 {
-    /// <summary>
-    /// 实体逻辑脚本
-    /// </summary>
     public abstract class Entity : EntityLogic
     {
-        [SerializeField]
-        private EntityData m_EntityData = null;
+        [SerializeField] private EntityData m_EntityData = null;
 
         public int Id
         {
-            get
-            {
-                return Entity.Id;
-            }
+            get { return Entity.Id; }
         }
 
-        public Animation CachedAnimation
-        {
-            get;
-            private set;
-        }
+        public Animation CachedAnimation { get; private set; }
 
 #if UNITY_2017_3_OR_NEWER
         protected override void OnInit(object userData)
@@ -34,6 +23,15 @@ namespace FlappyBird
         {
             base.OnInit(userData);
             CachedAnimation = GetComponent<Animation>();
+        }
+
+#if UNITY_2017_3_OR_NEWER
+        protected override void OnRecycle()
+#else
+        protected internal override void OnRecycle()
+#endif
+        {
+            base.OnRecycle();
         }
 
 #if UNITY_2017_3_OR_NEWER
@@ -51,19 +49,19 @@ namespace FlappyBird
                 return;
             }
 
-            Name = string.Format("[Entity {0}]", Id.ToString());
+            Name = Utility.Text.Format("[Entity {0}]", Id);
             CachedTransform.localPosition = m_EntityData.Position;
             CachedTransform.localRotation = m_EntityData.Rotation;
             CachedTransform.localScale = Vector3.one;
         }
 
 #if UNITY_2017_3_OR_NEWER
-        protected override void OnHide(object userData)
+        protected override void OnHide(bool isShutdown, object userData)
 #else
-        protected internal override void OnHide(object userData)
+        protected internal override void OnHide(bool isShutdown, object userData)
 #endif
         {
-            base.OnHide(userData);
+            base.OnHide(isShutdown, userData);
         }
 
 #if UNITY_2017_3_OR_NEWER

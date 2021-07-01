@@ -1,24 +1,43 @@
-﻿using GameFramework.DataTable;
+﻿//------------------------------------------------------------
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
+//------------------------------------------------------------
+// 此文件由工具自动生成，请勿直接修改。
+// 生成时间：2021-07-01 13:21:24.386
+//------------------------------------------------------------
+
+using GameFramework;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using UnityEngine;
+using UnityGameFramework.Runtime;
 
 namespace FlappyBird
 {
     /// <summary>
     /// 场景配置表。
     /// </summary>
-    public class DRScene : IDataRow
+    public class DRScene : DataRowBase
     {
+        private int m_Id = 0;
+
         /// <summary>
-        /// 场景编号。
+        /// 获取场景编号。
         /// </summary>
-        public int Id
+        public override int Id
         {
-            get;
-            protected set;
+            get
+            {
+                return m_Id;
+            }
         }
 
         /// <summary>
-        /// 资源名称。
+        /// 获取资源名称。
         /// </summary>
         public string AssetName
         {
@@ -27,28 +46,52 @@ namespace FlappyBird
         }
 
         /// <summary>
-        /// 背景音乐编号。
+        /// 获取背景音乐编号（没有就设置为0）。
         /// </summary>
-        public int BackgroundMusicId
+        public int BackgroundId
         {
             get;
             private set;
         }
 
-        public void ParseDataRow(string dataRowText)
+        public override bool ParseDataRow(string dataRowString, object userData)
         {
-            string[] text = DataTableExtension.SplitDataRow(dataRowText);
+            string[] columnStrings = dataRowString.Split(DataTableExtension.DataSplitSeparators);
+            for (int i = 0; i < columnStrings.Length; i++)
+            {
+                columnStrings[i] = columnStrings[i].Trim(DataTableExtension.DataTrimSeparators);
+            }
+
             int index = 0;
             index++;
-            Id = int.Parse(text[index++]);
+            m_Id = int.Parse(columnStrings[index++]);
             index++;
-            AssetName = text[index++];
-            BackgroundMusicId = int.Parse(text[index++]);
+            AssetName = columnStrings[index++];
+            BackgroundId = int.Parse(columnStrings[index++]);
+
+            GeneratePropertyArray();
+            return true;
         }
 
-        private void AvoidJIT()
+        public override bool ParseDataRow(byte[] dataRowBytes, int startIndex, int length, object userData)
         {
-            new Dictionary<int, DRScene>();
+            using (MemoryStream memoryStream = new MemoryStream(dataRowBytes, startIndex, length, false))
+            {
+                using (BinaryReader binaryReader = new BinaryReader(memoryStream, Encoding.UTF8))
+                {
+                    m_Id = binaryReader.Read7BitEncodedInt32();
+                    AssetName = binaryReader.ReadString();
+                    BackgroundId = binaryReader.Read7BitEncodedInt32();
+                }
+            }
+
+            GeneratePropertyArray();
+            return true;
+        }
+
+        private void GeneratePropertyArray()
+        {
+
         }
     }
 }

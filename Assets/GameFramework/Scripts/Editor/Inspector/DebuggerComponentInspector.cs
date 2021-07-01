@@ -1,11 +1,12 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEditor;
+using UnityEngine;
 using UnityGameFramework.Runtime;
 
 namespace UnityGameFramework.Editor
@@ -28,7 +29,7 @@ namespace UnityGameFramework.Editor
 
             EditorGUILayout.PropertyField(m_Skin);
 
-            if (EditorApplication.isPlaying && PrefabUtility.GetPrefabType(t.gameObject) != PrefabType.Prefab)
+            if (EditorApplication.isPlaying && IsPrefabInHierarchy(t.gameObject))
             {
                 bool activeWindow = EditorGUILayout.Toggle("Active Window", t.ActiveWindow);
                 if (activeWindow != t.ActiveWindow)
@@ -42,6 +43,15 @@ namespace UnityGameFramework.Editor
             }
 
             EditorGUILayout.PropertyField(m_ShowFullWindow);
+
+            if (EditorApplication.isPlaying)
+            {
+                if (GUILayout.Button("Reset Layout"))
+                {
+                    t.ResetLayout();
+                }
+            }
+
             EditorGUILayout.PropertyField(m_ConsoleWindow, true);
 
             serializedObject.ApplyModifiedProperties();

@@ -1,8 +1,8 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using GameFramework;
@@ -20,17 +20,6 @@ namespace UnityGameFramework.Runtime
         /// </summary>
         public VarUnityObject()
         {
-
-        }
-
-        /// <summary>
-        /// 初始化 UnityEngine.Object 变量类的新实例。
-        /// </summary>
-        /// <param name="value">值。</param>
-        public VarUnityObject(Object value)
-            : base(value)
-        {
-
         }
 
         /// <summary>
@@ -39,7 +28,9 @@ namespace UnityGameFramework.Runtime
         /// <param name="value">值。</param>
         public static implicit operator VarUnityObject(Object value)
         {
-            return new VarUnityObject(value);
+            VarUnityObject varValue = ReferencePool.Acquire<VarUnityObject>();
+            varValue.Value = value;
+            return varValue;
         }
 
         /// <summary>

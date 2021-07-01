@@ -1,15 +1,15 @@
 ﻿//------------------------------------------------------------
-// Game Framework v3.x
-// Copyright © 2013-2018 Jiang Yin. All rights reserved.
-// Homepage: http://gameframework.cn/
-// Feedback: mailto:jiangyin@gameframework.cn
+// Game Framework
+// Copyright © 2013-2021 Jiang Yin. All rights reserved.
+// Homepage: https://gameframework.cn/
+// Feedback: mailto:ellan@gameframework.cn
 //------------------------------------------------------------
 
 using UnityEngine;
 
 namespace UnityGameFramework.Runtime
 {
-    public partial class DebuggerComponent
+    public sealed partial class DebuggerComponent : GameFrameworkComponent
     {
         private sealed class InputCompassInformationWindow : ScrollableDebuggerWindowBase
         {
@@ -31,12 +31,15 @@ namespace UnityGameFramework.Runtime
                     }
                     GUILayout.EndHorizontal();
 
-                    DrawItem("Enabled:", Input.compass.enabled.ToString());
-                    DrawItem("Heading Accuracy:", Input.compass.headingAccuracy.ToString());
-                    DrawItem("Magnetic Heading:", Input.compass.magneticHeading.ToString());
-                    DrawItem("Raw Vector:", Input.compass.rawVector.ToString());
-                    DrawItem("Timestamp:", Input.compass.timestamp.ToString());
-                    DrawItem("True Heading:", Input.compass.trueHeading.ToString());
+                    DrawItem("Enabled", Input.compass.enabled.ToString());
+                    if (Input.compass.enabled)
+                    {
+                        DrawItem("Heading Accuracy", Input.compass.headingAccuracy.ToString());
+                        DrawItem("Magnetic Heading", Input.compass.magneticHeading.ToString());
+                        DrawItem("Raw Vector", Input.compass.rawVector.ToString());
+                        DrawItem("Timestamp", Input.compass.timestamp.ToString());
+                        DrawItem("True Heading", Input.compass.trueHeading.ToString());
+                    }
                 }
                 GUILayout.EndVertical();
             }

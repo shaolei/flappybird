@@ -15,6 +15,8 @@ namespace FlappyBird
             public const string UILayerName = "UI";
             public static readonly int UILayerId = LayerMask.NameToLayer(UILayerName);
 
+            public const string TargetableObjectLayerName = "Targetable Object";
+            public static readonly int TargetableObjectLayerId = LayerMask.NameToLayer(TargetableObjectLayerName);
         }
     }
 }
